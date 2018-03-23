@@ -64,5 +64,14 @@ for (i in 2:numy.bos){
   }
 }
 # the rolling basis cross-validation method may be improved in the future
+
+# using mae criterion for the best fitting model
+para.bosht <- models.bosht[[which.min(maes.bosht[2:numy.bos]) + 1]]
+
+# fit the optimal model to the whole data set
+# and predict for the next whole year
+boxrhtnsafc <- arima(boxrhtnsats, order = c(para.bosht[1], para.bosht[6], para.bosht[2]), seasonal = list(order = c(para.bosht[3], para.bosht[7], para.bosht[4]), period = para.bosht[5]))
+prediction.bosht <- forecast(boxrhtnsafc, (24 - extra.bos))
+pred.bosht <- prediction.bosht$mean
 ```
 
