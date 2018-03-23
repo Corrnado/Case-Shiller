@@ -1,6 +1,6 @@
 ---
 title: "Case-Shiller 3-Tier City Index Assessment"
-output: html_notebook
+output: pdf_document
 ---
 
 
