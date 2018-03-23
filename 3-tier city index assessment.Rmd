@@ -1,8 +1,13 @@
 ---
 title: "Case-Shiller 3-Tier City Index Assessment"
+author: "Bingjun Li"
+date: "3/23/2018"
 output: pdf_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 ```{r}
 # load necessary library
@@ -160,4 +165,4 @@ compareInd(boxrltnsats, c(2016,12), 12)
 (pred.bosmt[12] - boxrmtnsats[372])/ boxrmtnsats[372]
 (pred.boslt[12] - boxrltnsats[372])/ boxrltnsats[372]
 ```
-
+In each metro area, residential homes were divided into 3 tiers, high tier, middle tier and low tier. From the plot for Boston, MA, it can be observed that the home price index for all 3 tiers has exceeded the highest position before 2008 financial crisis by the end of 2017. The high, middle and low tiers of residential homes' year over year growth rates by December 2017 are 4.25%, 6.73%, and 7.8%. Using seasonal ARIMA model, we can obtain the prediction for 2018. By the end of 2018, the predicted year over year growth rates for 3 tiers are 3% for the high tier, 5.61 for the middle tier and 7.21% for the low tier. It can be clearly observed that the low tier is the backbone of the Boston market growth in 2018. Both the low tier and the middle tier is predicted to maintain roughly the same growth rate as that in 2017, but the growth of the high tier is predicted to slow down in 2018.
