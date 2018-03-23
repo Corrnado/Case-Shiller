@@ -154,5 +154,10 @@ compareInd <- function(tsobj, time1, timegap){
 compareInd(boxrhtnsats, c(2016,12), 12)
 compareInd(boxrmtnsats, c(2016,12), 12)
 compareInd(boxrltnsats, c(2016,12), 12)
+
+# compare the predicted index in 2018.12 and the index in 2017.12
+(pred.bosht[12] - boxrhtnsats[372])/ boxrhtnsats[372]
+(pred.bosmt[12] - boxrmtnsats[372])/ boxrmtnsats[372]
+(pred.boslt[12] - boxrltnsats[372])/ boxrltnsats[372]
 ```
 
