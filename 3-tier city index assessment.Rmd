@@ -139,5 +139,15 @@ dygraph(boxrnsa, main = "Home Price Index for Boston, Massachusetts") %>%
   dyOptions(colors = RColorBrewer::brewer.pal(3, "Dark2")) %>%
   dyShading(from = "2018-1-1", to = "2018-12-1") %>%
   dyLegend(width = 600)
+
+# to compute the difference betwen the index at two different time
+# a compareInd function was created. Input is a TS object, 
+# the prior time, as a year and month integer vector, such as c(2018, 1) 
+# and the time gap between in month
+compareInd <- function(tsobj, time1, timegap){
+  tmp <- window(tsobj, time1)
+  res <- (tmp[timegap + 1] - tmp[1])/ tmp[1]
+  return(res)
+}
 ```
 
