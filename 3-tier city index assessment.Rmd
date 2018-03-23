@@ -149,5 +149,10 @@ compareInd <- function(tsobj, time1, timegap){
   res <- (tmp[timegap + 1] - tmp[1])/ tmp[1]
   return(res)
 }
+
+# compare the index for all three tiers between the most current and one years ago
+compareInd(boxrhtnsats, c(2016,12), 12)
+compareInd(boxrmtnsats, c(2016,12), 12)
+compareInd(boxrltnsats, c(2016,12), 12)
 ```
 
