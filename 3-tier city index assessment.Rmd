@@ -10,6 +10,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+# the warnings caused by the high difference in ARIMA don't affect the resulting models.
+knitr::opts_chunk$set(warning = FALSE)
+
 # load necessary library
 library(forecast) # for prediction
 library(dygraphs) # for visulization
@@ -166,3 +169,121 @@ compareInd(boxrltnsats, c(2016,12), 12)
 (pred.boslt[12] - boxrltnsats[372])/ boxrltnsats[372]
 ```
 In each metro area, residential homes were divided into 3 tiers, high tier, middle tier and low tier. From the plot for Boston, MA, it can be observed that the home price index for all 3 tiers has exceeded the highest position before 2008 financial crisis by the end of 2017. The high, middle and low tiers of residential homes' year over year growth rates by December 2017 are 4.25%, 6.73%, and 7.8%. Using seasonal ARIMA model, we can obtain the prediction for 2018. By the end of 2018, the predicted year over year growth rates for 3 tiers are 3% for the high tier, 5.61 for the middle tier and 7.21% for the low tier. It can be clearly observed that the low tier is the backbone of the Boston market growth in 2018. Both the low tier and the middle tier is predicted to maintain roughly the same growth rate as that in 2017, but the growth of the high tier is predicted to slow down in 2018.
+
+```{r}
+knitr::opts_chunk$set(warning = FALSE)
+
+chxrhtnsats <- ts(CHXRHTNSA[,2], start = c(1992, 1), frequency = 12)
+chxrltnsats <- ts(CHXRLTNSA[,2], start = c(1992, 1), frequency = 12)
+chxrmtnsats <- ts(CHXRMTNSA[,2], start = c(1992, 1), frequency = 12)
+
+# to obtain the number of trainning groups and the number of months in the last test group
+numy.chi = floor(length(chxrhtnsats) / 12) - 1
+extra.chi = length(chxrhtnsats) - numy.chi * 12
+
+# for high tier Index
+# to create one numeric vector for storing mae value and one list for ARIMA parameters
+models.chiht <- vector("list", numy.chi)
+maes.chiht <- vector("numeric", numy.chi)
+
+# loop through every year
+for (i in 2:numy.chi){
+  chxrhtnsafc <- auto.arima(window(chxrhtnsats, 1992, c(1991 + i, 12)), D = 1)
+  models.chiht[[i]] <- chxrhtnsafc$arma
+  if (i == numy.chi){
+    pred <- forecast(chxrhtnsafc, extra.chi)
+    if (extra.chi == 12){
+      maes.chiht[i] <- mean(abs(pred$mean - window(chxrhtnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
+    } else {
+      maes.chiht[i] <- mean(abs(pred$mean - window(chxrhtnsats, (1991 + i + 1), c(1991 + i + 2, extra.chi - 12))))
+    }
+  } else {
+    pred <- forecast(chxrhtnsafc, 12)
+    maes.chiht[i] <- mean(abs(pred$mean - window(chxrhtnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
+  }
+}
+
+# using mae criterion for the best fitting model
+para.chiht <- models.chiht[[which.min(maes.chiht[2:numy.chi]) + 1]]
+
+# fit the optimal model to the whole data set
+# and predict for the next whole year
+chxrhtnsafc <- arima(chxrhtnsats, order = c(para.chiht[1], para.chiht[6], para.chiht[2]), seasonal = list(order = c(para.chiht[3], para.chiht[7], para.chiht[4]), period = para.chiht[5]))
+prediction.chiht <- forecast(chxrhtnsafc, (24 - extra.chi))
+pred.chiht <- prediction.chiht$mean
+
+# repeat the modelling process on other two tiers
+
+# for low tier
+models.chilt <- vector("list", numy.chi)
+maes.chilt <- vector("numeric", numy.chi)
+for (i in 2:numy.chi){
+  chxrltnsafc <- auto.arima(window(chxrltnsats, 1992, c(1991 + i, 12)), D = 1)
+  models.chilt[[i]] <- chxrltnsafc$arma
+  if (i == numy.chi){
+    pred <- forecast(chxrltnsafc, extra.chi)
+    if (extra.chi == 12){
+      maes.chilt[i] <- mean(abs(pred$mean - window(chxrltnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
+    } else {
+      maes.chilt[i] <- mean(abs(pred$mean - window(chxrltnsats, (1991 + i + 1), c(1991 + i + 2, extra.chi - 12))))
+    }
+  } else {
+    pred <- forecast(chxrltnsafc, 12)
+    maes.chilt[i] <- mean(abs(pred$mean - window(chxrltnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
+  }
+}
+para.chilt <- models.chilt[[which.min(maes.chilt[2:numy.chi]) + 1]]
+chxrltnsafc <- arima(chxrltnsats, order = c(para.chilt[1], para.chilt[6], para.chilt[2]), seasonal = list(order = c(para.chilt[3], para.chilt[7], para.chilt[4]), period = para.chilt[5]))
+prediction.chilt <- forecast(chxrltnsafc, (24 - extra.chi))
+pred.chilt <- prediction.chilt$mean
+
+# for middle tier
+models.chimt <- vector("list", numy.chi)
+maes.chimt <- vector("numeric", numy.chi)
+for (i in 2:numy.chi){
+  chxrmtnsafc <- auto.arima(window(chxrmtnsats, 1992, c(1991 + i, 12)), D = 1)
+  models.chimt[[i]] <- chxrmtnsafc$arma
+  if (i == numy.chi){
+    pred <- forecast(chxrmtnsafc, extra.chi)
+    if (extra.chi == 12){
+      maes.chimt[i] <- mean(abs(pred$mean - window(chxrmtnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
+    } else {
+      maes.chimt[i] <- mean(abs(pred$mean - window(chxrmtnsats, (1991 + i + 1), c(1991 + i + 2, extra.chi - 12))))
+    }
+  } else {
+    pred <- forecast(chxrmtnsafc, 12)
+    maes.chimt[i] <- mean(abs(pred$mean - window(chxrmtnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
+  }
+}
+para.chimt <- models.chimt[[which.min(maes.chimt[2:numy.chi]) + 1]]
+chxrmtnsafc <- arima(chxrmtnsats, order = c(para.chimt[1], para.chimt[6], para.chimt[2]), seasonal = list(order = c(para.chimt[3], para.chimt[7], para.chimt[4]), period = para.chimt[5]))
+prediction.chimt <- forecast(chxrmtnsafc, (24 - extra.chi))
+pred.chimt <- prediction.chimt$mean
+
+# combine the original data and the prediction into one data frame 
+chxrnsa <- cbind(chxrhtnsats, chxrmtnsats, chxrltnsats, pred.chiht, pred.chimt, pred.chilt)
+
+# use dygraphs package to plot the data and the prediction for three tiers in one graph
+dygraph(chxrnsa, main = "Home Price Index for Chicago, Illinois") %>%
+  dyAxis("x", label = "Time", drawGrid = FALSE, pixelsPerLabel = 40, axisLabelFormatter = "function(d){return d.getFullYear();}") %>%
+  dyAxis("y", label = "Price Index") %>%
+  dySeries("chxrhtnsats", label = "High Tier", strokeWidth = 3) %>%
+  dySeries("chxrmtnsats", label = "Middle Tier", strokeWidth = 3) %>%
+  dySeries("chxrltnsats", label = "Low Tier", strokeWidth = 3) %>%
+  dySeries("pred.chsht", label = "Prediction for High Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.chsmt", label = "Prediction for Middle Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.chslt", label = "Prediction for Low Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(3, "Dark2")) %>%
+  dyShading(from = "2018-1-1", to = "2018-12-1") %>%
+  dyLegend(width = 600)
+
+# compare the index for all three tiers between the most current and one years ago
+compareInd(chxrhtnsats, c(2016,12), 12)
+compareInd(chxrmtnsats, c(2016,12), 12)
+compareInd(chxrltnsats, c(2016,12), 12)
+
+# compare the predicted index in 2018.12 and the index in 2017.12
+(pred.chiht[12] - chxrhtnsats[312])/ chxrhtnsats[312]
+(pred.chimt[12] - chxrmtnsats[312])/ chxrmtnsats[312]
+(pred.chilt[12] - chxrltnsats[312])/ chxrltnsats[312]
+```
