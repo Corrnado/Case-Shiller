@@ -34,5 +34,35 @@ extra.bos = length(boxrhtnsats) - numy.bos * 12
 # to create one numeric vector for storing mae value and one list for ARIMA parameters
 models.bosht <- vector("list", numy.bos)
 maes.bosht <- vector("numeric", numy.bos)
+
+# loop through every year(except for only the frist year as a training set 
+# since the seasonal factor will fail on this set)
+for (i in 2:numy.bos){
+  
+  # use auto.arima to find a best model on training set
+  boxrhtnsafc <- auto.arima(window(boxrhtnsats, 1987, c(1986 + i, 12)), D = 1)
+  
+  # store arima parameter
+  models.bosht[[i]] <- boxrhtnsafc$arma
+  
+  # decide if the test group is the last year plus extra months
+  if (i == numy.bos){
+    pred <- forecast(boxrhtnsafc, extra.bos)
+
+    # if the test group is the last year then test if it is a whole year
+    if (extra.bos == 12){
+      maes.bosht[i] <- mean(abs(pred$mean - window(boxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+    } else {
+      # if not a whole year then the extra months are added to the previous group
+      maes.bosht[i] <- mean(abs(pred$mean - window(boxrhtnsats, (1986 + i + 1), c(1986 + i + 2, extra.bos - 12))))
+    }
+    
+  # if the test group is not the last year then just predict the next 12 months
+  } else {
+    pred <- forecast(boxrhtnsafc, 12)
+    maes.bosht[i] <- mean(abs(pred$mean - window(boxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+  }
+}
+# the rolling basis cross-validation method may be improved in the future
 ```
 
