@@ -122,6 +122,7 @@ boxrmtnsafc <- arima(boxrmtnsats, order = c(para.bosmt[1], para.bosmt[6], para.b
 prediction.bosmt <- forecast(boxrmtnsafc, (24 - extra.bos))
 pred.bosmt <- prediction.bosmt$mean
 
-
+# combine the original data and the prediction into one data frame 
+boxrnsa <- cbind(boxrhtnsats, boxrmtnsats, boxrltnsats, pred.bosht, pred.bosmt, pred.boslt)
 ```
 
