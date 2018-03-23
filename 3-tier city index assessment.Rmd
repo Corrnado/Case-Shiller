@@ -126,6 +126,18 @@ pred.bosmt <- prediction.bosmt$mean
 # combine the original data and the prediction into one data frame 
 boxrnsa <- cbind(boxrhtnsats, boxrmtnsats, boxrltnsats, pred.bosht, pred.bosmt, pred.boslt)
 
-
+# use dygraphs package to plot the data and the prediction for three tiers in one graph
+dygraph(boxrnsa, main = "Home Price Index for Boston, Massachusetts") %>%
+  dyAxis("x", label = "Time", drawGrid = FALSE, pixelsPerLabel = 40, axisLabelFormatter = "function(d){return d.getFullYear();}") %>%
+  dyAxis("y", label = "Price Index") %>%
+  dySeries("boxrhtnsats", label = "High Tier", strokeWidth = 3) %>%
+  dySeries("boxrmtnsats", label = "Middle Tier", strokeWidth = 3) %>%
+  dySeries("boxrltnsats", label = "Low Tier", strokeWidth = 3) %>%
+  dySeries("pred.bosht", label = "Prediction for High Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.bosmt", label = "Prediction for Middle Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.boslt", label = "Prediction for Low Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(3, "Dark2")) %>%
+  dyShading(from = "2018-1-1", to = "2018-12-1") %>%
+  dyLegend(width = 600)
 ```
 
