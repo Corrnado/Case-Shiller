@@ -7,6 +7,7 @@ output: pdf_document
 ```{r}
 # load necessary library
 library(forecast) # for prediction
+library(dygraphs) # for visulization
 
 # load all csv file into dataframe
 temp = list.files(pattern="*.csv")
@@ -124,5 +125,7 @@ pred.bosmt <- prediction.bosmt$mean
 
 # combine the original data and the prediction into one data frame 
 boxrnsa <- cbind(boxrhtnsats, boxrmtnsats, boxrltnsats, pred.bosht, pred.bosmt, pred.boslt)
+
+
 ```
 
