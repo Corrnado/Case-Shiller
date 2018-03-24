@@ -502,15 +502,15 @@ pred.nymt <- prediction.nymt$mean
 nyxrnsa <- cbind(nyxrhtnsats, nyxrmtnsats, nyxrltnsats, pred.nyht, pred.nymt, pred.nylt)
 
 # use dygraphs package to plot the data and the prediction for three tiers in one graph
-dygraph(nyxrnsa, main = "纽约房价指数") %>%
+dygraph(nyxrnsa, main = "Home Price Index for New York, New York") %>%
   dyAxis("x", label = "年份", drawGrid = FALSE, pixelsPerLabel = 40, axisLabelFormatter = "function(d){return d.getFullYear();}") %>%
-  dyAxis("y", label = "房价指数") %>%
-  dySeries("nyxrhtnsats", label = "高端", strokeWidth = 3) %>%
-  dySeries("nyxrmtnsats", label = "中端", strokeWidth = 3) %>%
-  dySeries("nyxrltnsats", label = "低端", strokeWidth = 3) %>%
-  dySeries("pred.nyht", label = "高端预测", strokeWidth = 4, strokePattern = c(7, 3)) %>%
-  dySeries("pred.nymt", label = "中端预测", strokeWidth = 4, strokePattern = c(7, 3)) %>%
-  dySeries("pred.nylt", label = "低端预测", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dyAxis("y", label = "Price Index") %>%
+  dySeries("nyxrhtnsats", label = "High Tier", strokeWidth = 3) %>%
+  dySeries("nyxrmtnsats", label = "Middle Tier", strokeWidth = 3) %>%
+  dySeries("nyxrltnsats", label = "Low Tier", strokeWidth = 3) %>%
+  dySeries("pred.nyht", label = "Prediction for High Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.nymt", label = "Prediction for Middle Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.nylt", label = "Prediction for Low Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
   dyOptions(strokeWidth = 3, colors = RColorBrewer::brewer.pal(3, "Dark2")) %>%
   dyShading(from = "2018-1-1", to = "2018-12-1") %>%
   dyLegend(width = 600)
