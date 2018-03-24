@@ -291,3 +291,118 @@ compareInd(chxrltnsats, c(2016,12), 12)
 ```
 It can be observed that the home price index for all 3 tiers has experienced significant growth, though it hasn't exceeded the highest position before 2008 financial crisis by the end of 2017. The high, middle and low tiers of residential homes' year over year growth rates by December 2017 are 0.38%, 4.92%, and 9.63%. It's clear that the low tier residential home is the main growth factor of Chicago market in 2017. Using the seasonal ARIMA model, the predicted year over year growth rates for 3 tiers by the end of 2018 are 0.38% for the high tier, 4.64% for the middle tier and 6.38% for the low tier. It can be seen that the growth rate for all 3 tiers homes will fall in 2018 but still maintain the growing tendency.
 
+```{r}
+laxrhtnsats <- ts(LXXRHTNSA[,2], start = c(1987, 1), frequency = 12)
+laxrltnsats <- ts(LXXRLTNSA[,2], start = c(1987, 1), frequency = 12)
+laxrmtnsats <- ts(LXXRMTNSA[,2], start = c(1987, 1), frequency = 12)
+
+# to obtain the number of trainning groups and the number of months in the last test group
+numy.la = floor(length(laxrhtnsats) / 12) - 1
+extra.la = length(laxrhtnsats) - numy.la * 12
+
+# for high tier Index
+# to create one numeric vector for storing mae value and one list for ARIMA parameters
+models.laht <- vector("list", numy.la)
+maes.laht <- vector("numeric", numy.la)
+
+# loop through every year
+for (i in 2:numy.la){
+  laxrhtnsafc <- auto.arima(window(laxrhtnsats, 1987, c(1986 + i, 12)), D = 1)
+  models.laht[[i]] <- laxrhtnsafc$arma
+  if (i == numy.la){
+    pred <- forecast(laxrhtnsafc, extra.la)
+    if (extra.la == 12){
+      maes.laht[i] <- mean(abs(pred$mean - window(laxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+    } else {
+      maes.laht[i] <- mean(abs(pred$mean - window(laxrhtnsats, (1986 + i + 1), c(1986 + i + 2, extra.la - 12))))
+    }
+  } else {
+    pred <- forecast(laxrhtnsafc, 12)
+    maes.laht[i] <- mean(abs(pred$mean - window(laxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+  }
+}
+
+# using mae criterion for the best fitting model
+para.laht <- models.laht[[which.min(maes.laht[2:numy.la]) + 1]]
+
+# fit the optimal model to the whole data set
+# and predict for the next whole year
+laxrhtnsafc <- arima(laxrhtnsats, order = c(para.laht[1], para.laht[6], para.laht[2]), seasonal = list(order = c(para.laht[3], para.laht[7], para.laht[4]), period = para.laht[5]))
+prediction.laht <- forecast(laxrhtnsafc, (24 - extra.la))
+pred.laht <- prediction.laht$mean
+
+# repeat the modelling process on other two tiers
+
+# for low tier
+models.lalt <- vector("list", numy.la)
+maes.lalt <- vector("numeric", numy.la)
+for (i in 2:numy.la){
+  laxrltnsafc <- auto.arima(window(laxrltnsats, 1987, c(1986 + i, 12)), D = 1)
+  models.lalt[[i]] <- laxrltnsafc$arma
+  if (i == numy.la){
+    pred <- forecast(laxrltnsafc, extra.la)
+    if (extra.la == 12){
+      maes.lalt[i] <- mean(abs(pred$mean - window(laxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+    } else {
+      maes.lalt[i] <- mean(abs(pred$mean - window(laxrltnsats, (1986 + i + 1), c(1986 + i + 2, extra.la - 12))))
+    }
+  } else {
+    pred <- forecast(laxrltnsafc, 12)
+    maes.lalt[i] <- mean(abs(pred$mean - window(laxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+  }
+}
+para.lalt <- models.lalt[[which.min(maes.lalt[2:numy.la]) + 1]]
+laxrltnsafc <- arima(laxrltnsats, order = c(para.lalt[1], para.lalt[6], para.lalt[2]), seasonal = list(order = c(para.lalt[3], para.lalt[7], para.lalt[4]), period = para.lalt[5]))
+prediction.lalt <- forecast(laxrltnsafc, (24 - extra.la))
+pred.lalt <- prediction.lalt$mean
+
+# for middle tier
+models.lamt <- vector("list", numy.la)
+maes.lamt <- vector("numeric", numy.la)
+for (i in 2:numy.la){
+  laxrmtnsafc <- auto.arima(window(laxrmtnsats, 1987, c(1986 + i, 12)), D = 1)
+  models.lamt[[i]] <- laxrmtnsafc$arma
+  if (i == numy.la){
+    pred <- forecast(laxrmtnsafc, extra.la)
+    if (extra.la == 12){
+      maes.lamt[i] <- mean(abs(pred$mean - window(laxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+    } else {
+      maes.lamt[i] <- mean(abs(pred$mean - window(laxrmtnsats, (1986 + i + 1), c(1986 + i + 2, extra.la - 12))))
+    }
+  } else {
+    pred <- forecast(laxrmtnsafc, 12)
+    maes.lamt[i] <- mean(abs(pred$mean - window(laxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+  }
+}
+para.lamt <- models.lamt[[which.min(maes.lamt[2:numy.la]) + 1]]
+laxrmtnsafc <- arima(laxrmtnsats, order = c(para.lamt[1], para.lamt[6], para.lamt[2]), seasonal = list(order = c(para.lamt[3], para.lamt[7], para.lamt[4]), period = para.lamt[5]))
+prediction.lamt <- forecast(laxrmtnsafc, (24 - extra.la))
+pred.lamt <- prediction.lamt$mean
+
+# combine the original data and the prediction into one data frame 
+laxrnsa <- cbind(laxrhtnsats, laxrmtnsats, laxrltnsats, pred.laht, pred.lamt, pred.lalt)
+
+# use dygraphs package to plot the data and the prediction for three tiers in one graph
+dygraph(laxrnsa, main = "Home Price Index for Los Angeles, California") %>%
+  dyAxis("x", label = "Time", drawGrid = FALSE, pixelsPerLabel = 40, axisLabelFormatter = "function(d){return d.getFullYear();}") %>%
+  dyAxis("y", label = "Price Index") %>%
+  dySeries("laxrhtnsats", label = "High Tier", strokeWidth = 3) %>%
+  dySeries("laxrmtnsats", label = "Middle Tier", strokeWidth = 3) %>%
+  dySeries("laxrltnsats", label = "Low Tier", strokeWidth = 3) %>%
+  dySeries("pred.laht", label = "Prediction For High Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.lamt", label = "Prediction For Middle Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.lalt", label = "Prediction For Low Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dyOptions(strokeWidth = 3, colors = RColorBrewer::brewer.pal(3, "Dark2")) %>%
+  dyShading(from = "2018-1-1", to = "2018-12-1") %>%
+  dyLegend(width = 600)
+
+# compare the index for all three tiers between the most current and one years ago
+compareInd(laxrhtnsats, c(2016,12), 12)
+compareInd(laxrmtnsats, c(2016,12), 12)
+compareInd(laxrltnsats, c(2016,12), 12)
+
+# compare the predicted index in 2018.12 and the index in 2017.12
+(pred.laht[12] - laxrhtnsats[372])/ laxrhtnsats[372]
+(pred.lamt[12] - laxrmtnsats[372])/ laxrmtnsats[372]
+(pred.lalt[12] - laxrltnsats[372])/ laxrltnsats[372]
+```
