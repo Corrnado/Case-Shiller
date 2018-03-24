@@ -2,7 +2,9 @@
 title: "Case-Shiller 3-Tier City Index Assessment"
 author: "Bingjun Li"
 date: "3/23/2018"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -270,9 +272,9 @@ dygraph(chxrnsa, main = "Home Price Index for Chicago, Illinois") %>%
   dySeries("chxrhtnsats", label = "High Tier", strokeWidth = 3) %>%
   dySeries("chxrmtnsats", label = "Middle Tier", strokeWidth = 3) %>%
   dySeries("chxrltnsats", label = "Low Tier", strokeWidth = 3) %>%
-  dySeries("pred.chsht", label = "Prediction for High Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
-  dySeries("pred.chsmt", label = "Prediction for Middle Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
-  dySeries("pred.chslt", label = "Prediction for Low Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.chiht", label = "Prediction for High Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.chimt", label = "Prediction for Middle Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.chilt", label = "Prediction for Low Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
   dyOptions(colors = RColorBrewer::brewer.pal(3, "Dark2")) %>%
   dyShading(from = "2018-1-1", to = "2018-12-1") %>%
   dyLegend(width = 600)
