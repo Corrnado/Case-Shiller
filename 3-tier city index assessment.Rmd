@@ -526,3 +526,121 @@ compareInd(nyxrltnsats, c(2016,12), 12)
 (pred.nylt[12] - nyxrltnsats[372])/ nyxrltnsats[372]
 ```
 It can be observed that the home price index for all 3 tiers in New York, NY has experienced steady growth, but hasn't been back to the high mark before 2008 financial crisis by the end of 2017. The high, middle and low tiers of residential homes' year over year growth rates by December 2017 are 4.25%, 7.28%, and 5.9%. Using the seasonal ARIMA model, the predicted year over year growth rates for 3 tiers by the end of 2018 are 3.54% for the high tier, 6.73% for the middle tier and 6.07% for the low tier such that the middle tier is the main growth factor for New York market. It can be seen that the growth rate for both the high and middle tiers in 2018 will be inferior to that in 2017, but the low tier market is gonna see a slightly steeper growth in 2018.
+
+```{r}
+knitr::opts_chunk$set(warning = FALSE)
+
+sfxrhtnsats <- ts(SFXRHTNSA[,2], start = c(1987, 1), frequency = 12)
+sfxrltnsats <- ts(SFXRLTNSA[,2], start = c(1987, 1), frequency = 12)
+sfxrmtnsats <- ts(SFXRMTNSA[,2], start = c(1987, 1), frequency = 12)
+
+# to obtain the number of trainning groups and the number of months in the last test group
+numy.sf = floor(length(sfxrhtnsats) / 12) - 1
+extra.sf = length(sfxrhtnsats) - numy.sf * 12
+
+# for high tier Index
+# to create one numeric vector for storing mae value and one list for ARIMA parameters
+models.sfht <- vector("list", numy.sf)
+maes.sfht <- vector("numeric", numy.sf)
+
+# loop through every year
+for (i in 2:numy.sf){
+  sfxrhtnsafc <- auto.arima(window(sfxrhtnsats, 1987, c(1986 + i, 12)), D = 1)
+  models.sfht[[i]] <- sfxrhtnsafc$arma
+  if (i == numy.sf){
+    pred <- forecast(sfxrhtnsafc, extra.sf)
+    if (extra.sf == 12){
+      maes.sfht[i] <- mean(abs(pred$mean - window(sfxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+    } else {
+      maes.sfht[i] <- mean(abs(pred$mean - window(sfxrhtnsats, (1986 + i + 1), c(1986 + i + 2, extra.sf - 12))))
+    }
+  } else {
+    pred <- forecast(sfxrhtnsafc, 12)
+    maes.sfht[i] <- mean(abs(pred$mean - window(sfxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+  }
+}
+
+# using mae criterion for the best fitting model
+para.sfht <- models.sfht[[which.min(maes.sfht[2:numy.sf]) + 1]]
+
+# fit the optimal model to the whole data set
+# and predict for the next whole year
+sfxrhtnsafc <- arima(sfxrhtnsats, order = c(para.sfht[1], para.sfht[6], para.sfht[2]), seasonal = list(order = c(para.sfht[3], para.sfht[7], para.sfht[4]), period = para.sfht[5]))
+prediction.sfht <- forecast(sfxrhtnsafc, (24 - extra.sf))
+pred.sfht <- prediction.sfht$mean
+
+# repeat the modelling process on other two tiers
+
+# for low tier
+models.sflt <- vector("list", numy.sf)
+maes.sflt <- vector("numeric", numy.sf)
+for (i in 2:numy.sf){
+  sfxrltnsafc <- auto.arima(window(sfxrltnsats, 1987, c(1986 + i, 12)), D = 1)
+  models.sflt[[i]] <- sfxrltnsafc$arma
+  if (i == numy.sf){
+    pred <- forecast(sfxrltnsafc, extra.sf)
+    if (extra.sf == 12){
+      maes.sflt[i] <- mean(abs(pred$mean - window(sfxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+    } else {
+      maes.sflt[i] <- mean(abs(pred$mean - window(sfxrltnsats, (1986 + i + 1), c(1986 + i + 2, extra.sf - 12))))
+    }
+  } else {
+    pred <- forecast(sfxrltnsafc, 12)
+    maes.sflt[i] <- mean(abs(pred$mean - window(sfxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+  }
+}
+para.sflt <- models.sflt[[which.min(maes.sflt[2:numy.sf]) + 1]]
+sfxrltnsafc <- arima(sfxrltnsats, order = c(para.sflt[1], para.sflt[6], para.sflt[2]), seasonal = list(order = c(para.sflt[3], para.sflt[7], para.sflt[4]), period = para.sflt[5]))
+prediction.sflt <- forecast(sfxrltnsafc, (24 - extra.sf))
+pred.sflt <- prediction.sflt$mean
+
+# for middle tier
+models.sfmt <- vector("list", numy.sf)
+maes.sfmt <- vector("numeric", numy.sf)
+for (i in 2:numy.sf){
+  sfxrmtnsafc <- auto.arima(window(sfxrmtnsats, 1987, c(1986 + i, 12)), D = 1)
+  models.sfmt[[i]] <- sfxrmtnsafc$arma
+  if (i == numy.sf){
+    pred <- forecast(sfxrmtnsafc, extra.sf)
+    if (extra.sf == 12){
+      maes.sfmt[i] <- mean(abs(pred$mean - window(sfxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+    } else {
+      maes.sfmt[i] <- mean(abs(pred$mean - window(sfxrmtnsats, (1986 + i + 1), c(1986 + i + 2, extra.sf - 12))))
+    }
+  } else {
+    pred <- forecast(sfxrmtnsafc, 12)
+    maes.sfmt[i] <- mean(abs(pred$mean - window(sfxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+  }
+}
+para.sfmt <- models.sfmt[[which.min(maes.sfmt[2:numy.sf]) + 1]]
+sfxrmtnsafc <- arima(sfxrmtnsats, order = c(para.sfmt[1], para.sfmt[6], para.sfmt[2]), seasonal = list(order = c(para.sfmt[3], para.sfmt[7], para.sfmt[4]), period = para.sfmt[5]))
+prediction.sfmt <- forecast(sfxrmtnsafc, (24 - extra.sf))
+pred.sfmt <- prediction.sfmt$mean
+
+# combine the original data and the prediction into one data frame 
+sfxrnsa <- cbind(sfxrhtnsats, sfxrmtnsats, sfxrltnsats, pred.sfht, pred.sfmt, pred.sflt)
+
+# use dygraphs package to plot the data and the prediction for three tiers in one graph
+dygraph(sfxrnsa, main = "Home Price Index for San Francisco, California") %>%
+  dyAxis("x", label = "Time", drawGrid = FALSE, pixelsPerLabel = 40, axisLabelFormatter = "function(d){return d.getFullYear();}") %>%
+  dyAxis("y", label = "Price Index") %>%
+  dySeries("sfxrhtnsats", label = "High Tier", strokeWidth = 3) %>%
+  dySeries("sfxrmtnsats", label = "Middle Tier", strokeWidth = 3) %>%
+  dySeries("sfxrltnsats", label = "Low Tier", strokeWidth = 3) %>%
+  dySeries("pred.sfht", label = "Prediction for High Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.sfmt", label = "Prediction for Middle Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dySeries("pred.sflt", label = "Prediction for Low Tier", strokeWidth = 4, strokePattern = c(7, 3)) %>%
+  dyShading(from = "2018-1-1", to = "2018-12-1") %>%
+  dyOptions(strokeWidth = 3, colors = RColorBrewer::brewer.pal(3, "Dark2")) %>%
+  dyLegend(width = 600)
+
+# compare the index for all three tiers between the most current and one years ago
+compareInd(nyxrhtnsats, c(2016,12), 12)
+compareInd(nyxrmtnsats, c(2016,12), 12)
+compareInd(nyxrltnsats, c(2016,12), 12)
+
+# compare the predicted index in 2018.12 and the index in 2017.12
+(pred.nyht[12] - nyxrhtnsats[372])/ nyxrhtnsats[372]
+(pred.nymt[12] - nyxrmtnsats[372])/ nyxrmtnsats[372]
+(pred.nylt[12] - nyxrltnsats[372])/ nyxrltnsats[372]
+```
