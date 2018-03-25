@@ -15,4 +15,22 @@ for (i in 1:length(temp)) {
   assign(strtrim(temp[i], (nchar(temp[i]) - 4)), read.csv(temp[i]))
 }
 
+# convert all 15 metro areas' Home Index result into time series object
+atxrnsats <- ts(ATXRNSA[,2], start = c(1991, 1), frequency = 12)
+boxrnsats <- ts(BOXRNSA[,2], start = c(1987, 1), frequency = 12)
+chxrnsats <- ts(CHXRNSA[,2], start = c(1987, 1), frequency = 12)
+daxrnsats <- ts(DAXRNSA[,2], start = c(2000, 1), frequency = 12)
+dnxrnsats <- ts(DNXRNSA[,2], start = c(1987, 1), frequency = 12)
+lvxrnsats <- ts(LVXRNSA[,2], start = c(1987, 1), frequency = 12)
+lxxrnsats <- ts(LXXRNSA[,2], start = c(1987, 1), frequency = 12)
+mixrnsats <- ts(MIXRNSA[,2], start = c(1987, 1), frequency = 12)
+mnxrnsats <- ts(MNXRNSA[,2], start = c(1989, 1), frequency = 12)
+nyxrnsats <- ts(NYXRNSA[,2], start = c(1987, 1), frequency = 12)
+phxrnsats <- ts(PHXRNSA[,2], start = c(1989, 1), frequency = 12)
+sdxrnsats <- ts(SDXRNSA[,2], start = c(1987, 1), frequency = 12)
+sexrnsats <- ts(SEXRNSA[,2], start = c(1990, 1), frequency = 12)
+sfxrnsats <- ts(SFXRNSA[,2], start = c(1987, 1), frequency = 12)
+wdxrnsats <- ts(WDXRNSA[,2], start = c(1987, 1), frequency = 12)
+
+
 ```
