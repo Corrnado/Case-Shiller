@@ -635,12 +635,13 @@ dygraph(sfxrnsa, main = "Home Price Index for San Francisco, California") %>%
   dyLegend(width = 600)
 
 # compare the index for all three tiers between the most current and one years ago
-compareInd(nyxrhtnsats, c(2016,12), 12)
-compareInd(nyxrmtnsats, c(2016,12), 12)
-compareInd(nyxrltnsats, c(2016,12), 12)
+compareInd(sfxrhtnsats, c(2016,12), 12)
+compareInd(sfxrmtnsats, c(2016,12), 12)
+compareInd(sfxrltnsats, c(2016,12), 12)
 
 # compare the predicted index in 2018.12 and the index in 2017.12
-(pred.nyht[12] - nyxrhtnsats[372])/ nyxrhtnsats[372]
-(pred.nymt[12] - nyxrmtnsats[372])/ nyxrmtnsats[372]
-(pred.nylt[12] - nyxrltnsats[372])/ nyxrltnsats[372]
+(pred.sfht[12] - sfxrhtnsats[372])/ sfxrhtnsats[372]
+(pred.sfmt[12] - sfxrmtnsats[372])/ sfxrmtnsats[372]
+(pred.sflt[12] - sfxrltnsats[372])/ sfxrltnsats[372]
 ```
+It can be observed that the home price indexes for all 3 tiers in San Francisco, CA have experienced significant growth. Although the price index for low tier hasn't reached the highest mark before 2008 financial crisis by the end of 2017, the rest tiers have already exceeded. The high, middle and low tiers of residential homes' year over year growth rates by December 2017 are 8.38%, 10.06% and 10.98%, which are very high index across the nation. Using the seasonal ARIMA model, the predicted year over year growth rates for 3 tiers by the end of 2018 are 6.96% for the high tier, 15.29% for the middle tier and 13.68% for the low tier. It can be seen that the growth rate for both the high and middle tiers in 2018 will be much higher to that in 2017, and both the middle and low tier is gonna experience a bigger blooming in 2018. The future of San Francisco market seems to be very bright.
