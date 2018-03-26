@@ -139,92 +139,19 @@ In each metro area, residential homes were divided into 3 tiers, high tier, midd
 ```{r}
 knitr::opts_chunk$set(warning = FALSE)
 
+# convert Chicago Home Index data (3 tiers) into time series object
 chxrhtnsats <- ts(CHXRHTNSA[,2], start = c(1992, 1), frequency = 12)
 chxrltnsats <- ts(CHXRLTNSA[,2], start = c(1992, 1), frequency = 12)
 chxrmtnsats <- ts(CHXRMTNSA[,2], start = c(1992, 1), frequency = 12)
 
-# to obtain the number of trainning groups and the number of months in the last test group
-numy.chi = floor(length(chxrhtnsats) / 12) - 1
-extra.chi = length(chxrhtnsats) - numy.chi * 12
+# predict for high tier
+pred.chiht <- nextYearPred(chxrhtnsats, 1992)$mean
 
-# for high tier Index
-# to create one numeric vector for storing mae value and one list for ARIMA parameters
-models.chiht <- vector("list", numy.chi)
-maes.chiht <- vector("numeric", numy.chi)
+# predict for low tier
+pred.chilt <- nextYearPred(chxrltnsats, 1992)$mean
 
-# loop through every year
-for (i in 2:numy.chi){
-  chxrhtnsafc <- auto.arima(window(chxrhtnsats, 1992, c(1991 + i, 12)), D = 1)
-  models.chiht[[i]] <- chxrhtnsafc$arma
-  if (i == numy.chi){
-    pred <- forecast(chxrhtnsafc, extra.chi)
-    if (extra.chi == 12){
-      maes.chiht[i] <- mean(abs(pred$mean - window(chxrhtnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
-    } else {
-      maes.chiht[i] <- mean(abs(pred$mean - window(chxrhtnsats, (1991 + i + 1), c(1991 + i + 2, extra.chi - 12))))
-    }
-  } else {
-    pred <- forecast(chxrhtnsafc, 12)
-    maes.chiht[i] <- mean(abs(pred$mean - window(chxrhtnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
-  }
-}
-
-# using mae criterion for the best fitting model
-para.chiht <- models.chiht[[which.min(maes.chiht[2:numy.chi]) + 1]]
-
-# fit the optimal model to the whole data set
-# and predict for the next whole year
-chxrhtnsafc <- arima(chxrhtnsats, order = c(para.chiht[1], para.chiht[6], para.chiht[2]), seasonal = list(order = c(para.chiht[3], para.chiht[7], para.chiht[4]), period = para.chiht[5]))
-prediction.chiht <- forecast(chxrhtnsafc, (24 - extra.chi))
-pred.chiht <- prediction.chiht$mean
-
-# repeat the modelling process on other two tiers
-
-# for low tier
-models.chilt <- vector("list", numy.chi)
-maes.chilt <- vector("numeric", numy.chi)
-for (i in 2:numy.chi){
-  chxrltnsafc <- auto.arima(window(chxrltnsats, 1992, c(1991 + i, 12)), D = 1)
-  models.chilt[[i]] <- chxrltnsafc$arma
-  if (i == numy.chi){
-    pred <- forecast(chxrltnsafc, extra.chi)
-    if (extra.chi == 12){
-      maes.chilt[i] <- mean(abs(pred$mean - window(chxrltnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
-    } else {
-      maes.chilt[i] <- mean(abs(pred$mean - window(chxrltnsats, (1991 + i + 1), c(1991 + i + 2, extra.chi - 12))))
-    }
-  } else {
-    pred <- forecast(chxrltnsafc, 12)
-    maes.chilt[i] <- mean(abs(pred$mean - window(chxrltnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
-  }
-}
-para.chilt <- models.chilt[[which.min(maes.chilt[2:numy.chi]) + 1]]
-chxrltnsafc <- arima(chxrltnsats, order = c(para.chilt[1], para.chilt[6], para.chilt[2]), seasonal = list(order = c(para.chilt[3], para.chilt[7], para.chilt[4]), period = para.chilt[5]))
-prediction.chilt <- forecast(chxrltnsafc, (24 - extra.chi))
-pred.chilt <- prediction.chilt$mean
-
-# for middle tier
-models.chimt <- vector("list", numy.chi)
-maes.chimt <- vector("numeric", numy.chi)
-for (i in 2:numy.chi){
-  chxrmtnsafc <- auto.arima(window(chxrmtnsats, 1992, c(1991 + i, 12)), D = 1)
-  models.chimt[[i]] <- chxrmtnsafc$arma
-  if (i == numy.chi){
-    pred <- forecast(chxrmtnsafc, extra.chi)
-    if (extra.chi == 12){
-      maes.chimt[i] <- mean(abs(pred$mean - window(chxrmtnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
-    } else {
-      maes.chimt[i] <- mean(abs(pred$mean - window(chxrmtnsats, (1991 + i + 1), c(1991 + i + 2, extra.chi - 12))))
-    }
-  } else {
-    pred <- forecast(chxrmtnsafc, 12)
-    maes.chimt[i] <- mean(abs(pred$mean - window(chxrmtnsats, (1991 + i + 1), c(1991 + i + 1, 12))))
-  }
-}
-para.chimt <- models.chimt[[which.min(maes.chimt[2:numy.chi]) + 1]]
-chxrmtnsafc <- arima(chxrmtnsats, order = c(para.chimt[1], para.chimt[6], para.chimt[2]), seasonal = list(order = c(para.chimt[3], para.chimt[7], para.chimt[4]), period = para.chimt[5]))
-prediction.chimt <- forecast(chxrmtnsafc, (24 - extra.chi))
-pred.chimt <- prediction.chimt$mean
+# predict for middle tier
+pred.chimt <- nextYearPred(chxrmtnsats, 1992)$mean
 
 # combine the original data and the prediction into one data frame 
 chxrnsa <- cbind(chxrhtnsats, chxrmtnsats, chxrltnsats, pred.chiht, pred.chimt, pred.chilt)
@@ -256,92 +183,21 @@ compareInd(chxrltnsats, c(2016,12), 12)
 It can be observed that the home price indexes for all 3 tiers in Chicago, IL have experienced significant growth, though it hasn't exceeded the highest position before 2008 financial crisis by the end of 2017. The high, middle and low tiers of residential homes' year over year growth rates by December 2017 are 0.38%, 4.92%, and 9.63%. It's clear that the low tier residential home is the main growth factor of Chicago market in 2017. Using the seasonal ARIMA model, the predicted year over year growth rates for 3 tiers by the end of 2018 are 0.38% for the high tier, 4.64% for the middle tier and 6.38% for the low tier. It can be seen that the growth rate for all 3 tiers homes will fall in 2018 but still maintain the growing tendency.
 
 ```{r}
+knitr::opts_chunk$set(warning = FALSE)
+
+# convert Los Angeles Home Index data (3 tiers) into time series object
 laxrhtnsats <- ts(LXXRHTNSA[,2], start = c(1987, 1), frequency = 12)
 laxrltnsats <- ts(LXXRLTNSA[,2], start = c(1987, 1), frequency = 12)
 laxrmtnsats <- ts(LXXRMTNSA[,2], start = c(1987, 1), frequency = 12)
 
-# to obtain the number of trainning groups and the number of months in the last test group
-numy.la = floor(length(laxrhtnsats) / 12) - 1
-extra.la = length(laxrhtnsats) - numy.la * 12
+# predict for high tier
+pred.laht <- nextYearPred(laxrhtnsats, 1987)$mean
 
-# for high tier Index
-# to create one numeric vector for storing mae value and one list for ARIMA parameters
-models.laht <- vector("list", numy.la)
-maes.laht <- vector("numeric", numy.la)
+# predict for low tier
+pred.lalt <- nextYearPred(laxrltnsats, 1987)$mean
 
-# loop through every year
-for (i in 2:numy.la){
-  laxrhtnsafc <- auto.arima(window(laxrhtnsats, 1987, c(1986 + i, 12)), D = 1)
-  models.laht[[i]] <- laxrhtnsafc$arma
-  if (i == numy.la){
-    pred <- forecast(laxrhtnsafc, extra.la)
-    if (extra.la == 12){
-      maes.laht[i] <- mean(abs(pred$mean - window(laxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      maes.laht[i] <- mean(abs(pred$mean - window(laxrhtnsats, (1986 + i + 1), c(1986 + i + 2, extra.la - 12))))
-    }
-  } else {
-    pred <- forecast(laxrhtnsafc, 12)
-    maes.laht[i] <- mean(abs(pred$mean - window(laxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-  }
-}
-
-# using mae criterion for the best fitting model
-para.laht <- models.laht[[which.min(maes.laht[2:numy.la]) + 1]]
-
-# fit the optimal model to the whole data set
-# and predict for the next whole year
-laxrhtnsafc <- arima(laxrhtnsats, order = c(para.laht[1], para.laht[6], para.laht[2]), seasonal = list(order = c(para.laht[3], para.laht[7], para.laht[4]), period = para.laht[5]))
-prediction.laht <- forecast(laxrhtnsafc, (24 - extra.la))
-pred.laht <- prediction.laht$mean
-
-# repeat the modelling process on other two tiers
-
-# for low tier
-models.lalt <- vector("list", numy.la)
-maes.lalt <- vector("numeric", numy.la)
-for (i in 2:numy.la){
-  laxrltnsafc <- auto.arima(window(laxrltnsats, 1987, c(1986 + i, 12)), D = 1)
-  models.lalt[[i]] <- laxrltnsafc$arma
-  if (i == numy.la){
-    pred <- forecast(laxrltnsafc, extra.la)
-    if (extra.la == 12){
-      maes.lalt[i] <- mean(abs(pred$mean - window(laxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      maes.lalt[i] <- mean(abs(pred$mean - window(laxrltnsats, (1986 + i + 1), c(1986 + i + 2, extra.la - 12))))
-    }
-  } else {
-    pred <- forecast(laxrltnsafc, 12)
-    maes.lalt[i] <- mean(abs(pred$mean - window(laxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-  }
-}
-para.lalt <- models.lalt[[which.min(maes.lalt[2:numy.la]) + 1]]
-laxrltnsafc <- arima(laxrltnsats, order = c(para.lalt[1], para.lalt[6], para.lalt[2]), seasonal = list(order = c(para.lalt[3], para.lalt[7], para.lalt[4]), period = para.lalt[5]))
-prediction.lalt <- forecast(laxrltnsafc, (24 - extra.la))
-pred.lalt <- prediction.lalt$mean
-
-# for middle tier
-models.lamt <- vector("list", numy.la)
-maes.lamt <- vector("numeric", numy.la)
-for (i in 2:numy.la){
-  laxrmtnsafc <- auto.arima(window(laxrmtnsats, 1987, c(1986 + i, 12)), D = 1)
-  models.lamt[[i]] <- laxrmtnsafc$arma
-  if (i == numy.la){
-    pred <- forecast(laxrmtnsafc, extra.la)
-    if (extra.la == 12){
-      maes.lamt[i] <- mean(abs(pred$mean - window(laxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      maes.lamt[i] <- mean(abs(pred$mean - window(laxrmtnsats, (1986 + i + 1), c(1986 + i + 2, extra.la - 12))))
-    }
-  } else {
-    pred <- forecast(laxrmtnsafc, 12)
-    maes.lamt[i] <- mean(abs(pred$mean - window(laxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-  }
-}
-para.lamt <- models.lamt[[which.min(maes.lamt[2:numy.la]) + 1]]
-laxrmtnsafc <- arima(laxrmtnsats, order = c(para.lamt[1], para.lamt[6], para.lamt[2]), seasonal = list(order = c(para.lamt[3], para.lamt[7], para.lamt[4]), period = para.lamt[5]))
-prediction.lamt <- forecast(laxrmtnsafc, (24 - extra.la))
-pred.lamt <- prediction.lamt$mean
+# predict for middle tier
+pred.lamt <- nextYearPred(laxrmtnsats, 1987)$mean
 
 # combine the original data and the prediction into one data frame 
 laxrnsa <- cbind(laxrhtnsats, laxrmtnsats, laxrltnsats, pred.laht, pred.lamt, pred.lalt)
@@ -375,92 +231,19 @@ It can be observed that the home price indexes for all 3 tiers in Los Angeles, C
 ```{r}
 knitr::opts_chunk$set(warning = FALSE)
 
+# convert New York Home Index data (3 tiers) into time series object
 nyxrhtnsats <- ts(NYXRHTNSA[,2], start = c(1987, 1), frequency = 12)
 nyxrltnsats <- ts(NYXRLTNSA[,2], start = c(1987, 1), frequency = 12)
 nyxrmtnsats <- ts(NYXRMTNSA[,2], start = c(1987, 1), frequency = 12)
 
-# to obtain the number of trainning groups and the number of months in the last test group
-numy.ny = floor(length(nyxrhtnsats) / 12) - 1
-extra.ny = length(nyxrhtnsats) - numy.ny * 12
+# predict for high tier
+pred.nyht <- nextYearPred(nyxrhtnsats, 1987)$mean
 
-# for high tier Index
-# to create one numeric vector for storing mae value and one list for ARIMA parameters
-models.nyht <- vector("list", numy.ny)
-maes.nyht <- vector("numeric", numy.ny)
+# predict for low tier
+pred.nylt <- nextYearPred(nyxrltnsats, 1987)$mean
 
-# loop through every year
-for (i in 2:numy.ny){
-  nyxrhtnsafc <- auto.arima(window(nyxrhtnsats, 1987, c(1986 + i, 12)), D = 1)
-  models.nyht[[i]] <- nyxrhtnsafc$arma
-  if (i == numy.ny){
-    pred <- forecast(nyxrhtnsafc, extra.ny)
-    if (extra.ny == 12){
-      maes.nyht[i] <- mean(abs(pred$mean - window(nyxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      maes.nyht[i] <- mean(abs(pred$mean - window(nyxrhtnsats, (1986 + i + 1), c(1986 + i + 2, extra.ny - 12))))
-    }
-  } else {
-    pred <- forecast(nyxrhtnsafc, 12)
-    maes.nyht[i] <- mean(abs(pred$mean - window(nyxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-  }
-}
-
-# using mae criterion for the best fitting model
-para.nyht <- models.nyht[[which.min(maes.nyht[2:numy.ny]) + 1]]
-
-# fit the optimal model to the whole data set
-# and predict for the next whole year
-nyxrhtnsafc <- arima(nyxrhtnsats, order = c(para.nyht[1], para.nyht[6], para.nyht[2]), seasonal = list(order = c(para.nyht[3], para.nyht[7], para.nyht[4]), period = para.nyht[5]))
-prediction.nyht <- forecast(nyxrhtnsafc, (24 - extra.ny))
-pred.nyht <- prediction.nyht$mean
-
-# repeat the modelling process on other two tiers
-
-# for low tier
-models.nylt <- vector("list", numy.ny)
-maes.nylt <- vector("numeric", numy.ny)
-for (i in 2:numy.ny){
-  nyxrltnsafc <- auto.arima(window(nyxrltnsats, 1987, c(1986 + i, 12)), D = 1)
-  models.nylt[[i]] <- nyxrltnsafc$arma
-  if (i == numy.ny){
-    pred <- forecast(nyxrltnsafc, extra.ny)
-    if (extra.ny == 12){
-      maes.nylt[i] <- mean(abs(pred$mean - window(nyxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      maes.nylt[i] <- mean(abs(pred$mean - window(nyxrltnsats, (1986 + i + 1), c(1986 + i + 2, extra.ny - 12))))
-    }
-  } else {
-    pred <- forecast(nyxrltnsafc, 12)
-    maes.nylt[i] <- mean(abs(pred$mean - window(nyxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-  }
-}
-para.nylt <- models.nylt[[which.min(maes.nylt[2:numy.ny]) + 1]]
-nyxrltnsafc <- arima(nyxrltnsats, order = c(para.nylt[1], para.nylt[6], para.nylt[2]), seasonal = list(order = c(para.nylt[3], para.nylt[7], para.nylt[4]), period = para.nylt[5]))
-prediction.nylt <- forecast(nyxrltnsafc, (24 - extra.ny))
-pred.nylt <- prediction.nylt$mean
-
-# for middle tier
-models.nymt <- vector("list", numy.ny)
-maes.nymt <- vector("numeric", numy.ny)
-for (i in 2:numy.ny){
-  nyxrmtnsafc <- auto.arima(window(nyxrmtnsats, 1987, c(1986 + i, 12)), D = 1)
-  models.nymt[[i]] <- nyxrmtnsafc$arma
-  if (i == numy.ny){
-    pred <- forecast(nyxrmtnsafc, extra.ny)
-    if (extra.ny == 12){
-      maes.nymt[i] <- mean(abs(pred$mean - window(nyxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      maes.nymt[i] <- mean(abs(pred$mean - window(nyxrmtnsats, (1986 + i + 1), c(1986 + i + 2, extra.ny - 12))))
-    }
-  } else {
-    pred <- forecast(nyxrmtnsafc, 12)
-    maes.nymt[i] <- mean(abs(pred$mean - window(nyxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-  }
-}
-para.nymt <- models.nymt[[which.min(maes.nymt[2:numy.ny]) + 1]]
-nyxrmtnsafc <- arima(nyxrmtnsats, order = c(para.nymt[1], para.nymt[6], para.nymt[2]), seasonal = list(order = c(para.nymt[3], para.nymt[7], para.nymt[4]), period = para.nymt[5]))
-prediction.nymt <- forecast(nyxrmtnsafc, (24 - extra.ny))
-pred.nymt <- prediction.nymt$mean
+# predict for middle tier
+pred.nymt <- nextYearPred(nyxrmtnsats, 1987)$mean
 
 # combine the original data and the prediction into one data frame 
 nyxrnsa <- cbind(nyxrhtnsats, nyxrmtnsats, nyxrltnsats, pred.nyht, pred.nymt, pred.nylt)
@@ -494,92 +277,19 @@ It can be observed that the home price indexes for all 3 tiers in New York, NY h
 ```{r}
 knitr::opts_chunk$set(warning = FALSE)
 
+# convert San Francisco Home Index data (3 tiers) into time series object
 sfxrhtnsats <- ts(SFXRHTNSA[,2], start = c(1987, 1), frequency = 12)
 sfxrltnsats <- ts(SFXRLTNSA[,2], start = c(1987, 1), frequency = 12)
 sfxrmtnsats <- ts(SFXRMTNSA[,2], start = c(1987, 1), frequency = 12)
 
-# to obtain the number of trainning groups and the number of months in the last test group
-numy.sf = floor(length(sfxrhtnsats) / 12) - 1
-extra.sf = length(sfxrhtnsats) - numy.sf * 12
+# predict for high tier
+pred.sfht <- nextYearPred(sfxrhtnsats, 1987)$mean
 
-# for high tier Index
-# to create one numeric vector for storing mae value and one list for ARIMA parameters
-models.sfht <- vector("list", numy.sf)
-maes.sfht <- vector("numeric", numy.sf)
+# predict for low tier
+pred.sflt <- nextYearPred(sfxrltnsats, 1987)$mean
 
-# loop through every year
-for (i in 2:numy.sf){
-  sfxrhtnsafc <- auto.arima(window(sfxrhtnsats, 1987, c(1986 + i, 12)), D = 1)
-  models.sfht[[i]] <- sfxrhtnsafc$arma
-  if (i == numy.sf){
-    pred <- forecast(sfxrhtnsafc, extra.sf)
-    if (extra.sf == 12){
-      maes.sfht[i] <- mean(abs(pred$mean - window(sfxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      maes.sfht[i] <- mean(abs(pred$mean - window(sfxrhtnsats, (1986 + i + 1), c(1986 + i + 2, extra.sf - 12))))
-    }
-  } else {
-    pred <- forecast(sfxrhtnsafc, 12)
-    maes.sfht[i] <- mean(abs(pred$mean - window(sfxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-  }
-}
-
-# using mae criterion for the best fitting model
-para.sfht <- models.sfht[[which.min(maes.sfht[2:numy.sf]) + 1]]
-
-# fit the optimal model to the whole data set
-# and predict for the next whole year
-sfxrhtnsafc <- arima(sfxrhtnsats, order = c(para.sfht[1], para.sfht[6], para.sfht[2]), seasonal = list(order = c(para.sfht[3], para.sfht[7], para.sfht[4]), period = para.sfht[5]))
-prediction.sfht <- forecast(sfxrhtnsafc, (24 - extra.sf))
-pred.sfht <- prediction.sfht$mean
-
-# repeat the modelling process on other two tiers
-
-# for low tier
-models.sflt <- vector("list", numy.sf)
-maes.sflt <- vector("numeric", numy.sf)
-for (i in 2:numy.sf){
-  sfxrltnsafc <- auto.arima(window(sfxrltnsats, 1987, c(1986 + i, 12)), D = 1)
-  models.sflt[[i]] <- sfxrltnsafc$arma
-  if (i == numy.sf){
-    pred <- forecast(sfxrltnsafc, extra.sf)
-    if (extra.sf == 12){
-      maes.sflt[i] <- mean(abs(pred$mean - window(sfxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      maes.sflt[i] <- mean(abs(pred$mean - window(sfxrltnsats, (1986 + i + 1), c(1986 + i + 2, extra.sf - 12))))
-    }
-  } else {
-    pred <- forecast(sfxrltnsafc, 12)
-    maes.sflt[i] <- mean(abs(pred$mean - window(sfxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-  }
-}
-para.sflt <- models.sflt[[which.min(maes.sflt[2:numy.sf]) + 1]]
-sfxrltnsafc <- arima(sfxrltnsats, order = c(para.sflt[1], para.sflt[6], para.sflt[2]), seasonal = list(order = c(para.sflt[3], para.sflt[7], para.sflt[4]), period = para.sflt[5]))
-prediction.sflt <- forecast(sfxrltnsafc, (24 - extra.sf))
-pred.sflt <- prediction.sflt$mean
-
-# for middle tier
-models.sfmt <- vector("list", numy.sf)
-maes.sfmt <- vector("numeric", numy.sf)
-for (i in 2:numy.sf){
-  sfxrmtnsafc <- auto.arima(window(sfxrmtnsats, 1987, c(1986 + i, 12)), D = 1)
-  models.sfmt[[i]] <- sfxrmtnsafc$arma
-  if (i == numy.sf){
-    pred <- forecast(sfxrmtnsafc, extra.sf)
-    if (extra.sf == 12){
-      maes.sfmt[i] <- mean(abs(pred$mean - window(sfxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      maes.sfmt[i] <- mean(abs(pred$mean - window(sfxrmtnsats, (1986 + i + 1), c(1986 + i + 2, extra.sf - 12))))
-    }
-  } else {
-    pred <- forecast(sfxrmtnsafc, 12)
-    maes.sfmt[i] <- mean(abs(pred$mean - window(sfxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-  }
-}
-para.sfmt <- models.sfmt[[which.min(maes.sfmt[2:numy.sf]) + 1]]
-sfxrmtnsafc <- arima(sfxrmtnsats, order = c(para.sfmt[1], para.sfmt[6], para.sfmt[2]), seasonal = list(order = c(para.sfmt[3], para.sfmt[7], para.sfmt[4]), period = para.sfmt[5]))
-prediction.sfmt <- forecast(sfxrmtnsafc, (24 - extra.sf))
-pred.sfmt <- prediction.sfmt$mean
+# predict for middle tier
+pred.sfmt <- nextYearPred(sfxrmtnsats, 1987)$mean
 
 # combine the original data and the prediction into one data frame 
 sfxrnsa <- cbind(sfxrhtnsats, sfxrmtnsats, sfxrltnsats, pred.sfht, pred.sfmt, pred.sflt)
