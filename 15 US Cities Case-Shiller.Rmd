@@ -160,4 +160,13 @@ yoy[12] <- compareInd(res.sd, c(2017,12), 12)
 yoy[13] <- compareInd(res.se, c(2017,12), 12)
 yoy[14] <- compareInd(res.sf, c(2017,12), 12)
 yoy[15] <- compareInd(res.wd, c(2017,12), 12)
+
+# store the city names in a character vector
+metro <- c("Atlanta", "Boston", "Chicago", "Dallas", "Denver", "Las Vegas", "Los Angeles", "Miami", "Minneapolis", "New York", "Phoenix", "San Diego", "Seattle", "San Francisco", "Washington")
+
+# combine the city names vector and the yoy vector
+export <- cbind(metro, yoy)
+
+# export the result as a csv file
+write.csv(export, "usmetro.csv")
 ```
