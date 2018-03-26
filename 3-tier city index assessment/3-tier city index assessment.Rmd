@@ -28,11 +28,6 @@ for (i in 1:length(temp)) {
   assign(strtrim(temp[i], (nchar(temp[i]) - 4)), read.csv(temp[i]))
 }
 
-# convert Boston Home Index data (3 tiers) into time series object
-boxrhtnsats <- ts(BOXRHTNSA[,2], start = c(1987, 1), frequency = 12)
-boxrltnsats <- ts(BOXRLTNSA[,2], start = c(1987, 1), frequency = 12)
-boxrmtnsats <- ts(BOXRMTNSA[,2], start = c(1987, 1), frequency = 12)
-
 # the cross-validation implied here is a rolling basis
 # for example, the first training group is year 1 and test group is year 2
 # then, the second training group is year 1 and 2 and test group is year 3
@@ -40,101 +35,67 @@ boxrmtnsats <- ts(BOXRMTNSA[,2], start = c(1987, 1), frequency = 12)
 # maybe except for the last year
 # whatever left in the last year (< 12 months) will be added to the previous year as a test group
 
-# to obtain the number of trainning groups and the number of months in the last test group
-numy.bos = floor(length(boxrhtnsats) / 12) - 1
-extra.bos = length(boxrhtnsats) - numy.bos * 12
-
-# for high tier Index
-# to create one numeric vector for storing mae value and one list for ARIMA parameters
-models.bosht <- vector("list", numy.bos)
-maes.bosht <- vector("numeric", numy.bos)
-
-# loop through every year(except for only the frist year as a training set 
-# since the seasonal factor will fail on this set)
-for (i in 2:numy.bos){
+# define a function to find a optimal model for input data
+# tsobj input is time series object and syear is the start year of the data
+nextYearPred <- function(tsobj, syear){
   
-  # use auto.arima to find a best model on training set
-  boxrhtnsafc <- auto.arima(window(boxrhtnsats, 1987, c(1986 + i, 12)), D = 1)
+  # to obtain the number of trainning groups and the number of months in the last test group
+  numy = floor(length(tsobj) / 12) - 1
+  extra = length(tsobj) - numy * 12
   
-  # store arima parameter
-  models.bosht[[i]] <- boxrhtnsafc$arma
+  # to create one numeric vector for storing mae value and one list for ARIMA parameters
+  models <- vector("list", numy)
+  maes <- vector("numeric", numy)
   
-  # decide if the test group is the last year plus extra months
-  if (i == numy.bos){
-    pred <- forecast(boxrhtnsafc, extra.bos)
+  # loop through every year
+  for (i in 2:numy){
+  
+    # fit the model on the data
+    tsobjfc <- auto.arima(window(tsobj, syear, c(syear - 1 + i, 12)), D = 1)
 
-    # if the test group is the last year then test if it is a whole year
-    if (extra.bos == 12){
-      maes.bosht[i] <- mean(abs(pred$mean - window(boxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      # if not a whole year then the extra months are added to the previous group
-      maes.bosht[i] <- mean(abs(pred$mean - window(boxrhtnsats, (1986 + i + 1), c(1986 + i + 2, extra.bos - 12))))
-    }
+    # store model parameters
+    models[[i]] <- tsobjfc$arma
     
-  # if the test group is not the last year then just predict the next 12 months
-  } else {
-    pred <- forecast(boxrhtnsafc, 12)
-    maes.bosht[i] <- mean(abs(pred$mean - window(boxrhtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
+    # generate the prediction for the test group
+    if (i == numy){
+      pred <- forecast(tsobjfc, extra)
+      if (extra == 12){
+        maes[i] <- mean(abs(pred$mean - window(tsobj, (syear + i), c(syear + i, 12))))
+      } else {
+        maes[i] <- mean(abs(pred$mean - window(tsobj, (syear + i), c(syear + i + 1, extra - 12))))
+      }
+    } else {
+      pred <- forecast(tsobjfc, 12)
+      maes[i] <- mean(abs(pred$mean - window(tsobj, (syear + i), c(syear + i, 12))))
+    }
   }
+  
+  # using mae criterion for the best fitting model
+  para <- models[[which.min(maes[2:numy]) + 1]]
+  
+  # fit the optimal model to the whole data set
+  # and predict for the next whole year
+  tsobjfc.a <- arima(tsobj, order = c(para[1], para[6], para[2]), seasonal = list(order = c(para[3], para[7], para[4]), period = para[5]), method = "ML")
+  prediction <- forecast(tsobjfc.a, (24 - extra))
+  # return the forecast object
+  return(prediction)
 }
-# the rolling basis cross-validation method may be improved in the future
 
-# using mae criterion for the best fitting model
-para.bosht <- models.bosht[[which.min(maes.bosht[2:numy.bos]) + 1]]
+# convert Boston Home Index data (3 tiers) into time series object
+boxrhtnsats <- ts(BOXRHTNSA[,2], start = c(1987, 1), frequency = 12)
+boxrltnsats <- ts(BOXRLTNSA[,2], start = c(1987, 1), frequency = 12)
+boxrmtnsats <- ts(BOXRMTNSA[,2], start = c(1987, 1), frequency = 12)
 
-# fit the optimal model to the whole data set
-# and predict for the next whole year
-boxrhtnsafc <- arima(boxrhtnsats, order = c(para.bosht[1], para.bosht[6], para.bosht[2]), seasonal = list(order = c(para.bosht[3], para.bosht[7], para.bosht[4]), period = para.bosht[5]))
-prediction.bosht <- forecast(boxrhtnsafc, (24 - extra.bos))
-pred.bosht <- prediction.bosht$mean
+# run the function for high tier in Boston
+pred.bosht <- nextYearPred(boxrhtnsats, 1987)$mean
 
 # repeat the modelling process on other two tiers
 
 # for low tier
-models.boslt <- vector("list", numy.bos)
-maes.boslt <- vector("numeric", numy.bos)
-for (i in 2:numy.bos){
-  boxrltnsafc <- auto.arima(window(boxrltnsats, 1987, c(1986 + i, 12)), D = 1)
-  models.boslt[[i]] <- boxrltnsafc$arma
-  if (i == numy.bos){
-    pred <- forecast(boxrltnsafc, extra.bos)
-    if (extra.bos == 12){
-      maes.boslt[i] <- mean(abs(pred$mean - window(boxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      maes.boslt[i] <- mean(abs(pred$mean - window(boxrltnsats, (1986 + i + 1), c(1986 + i + 2, extra.bos - 12))))
-    }
-  } else {
-    pred <- forecast(boxrltnsafc, 12)
-    maes.boslt[i] <- mean(abs(pred$mean - window(boxrltnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-  }
-}
-para.boslt <- models.boslt[[which.min(maes.boslt[2:numy.bos]) + 1]]
-boxrltnsafc <- arima(boxrltnsats, order = c(para.boslt[1], para.boslt[6], para.boslt[2]), seasonal = list(order = c(para.boslt[3], para.boslt[7], para.boslt[4]), period = para.boslt[5]))
-prediction.boslt <- forecast(boxrltnsafc, (24 - extra.bos))
-pred.boslt <- prediction.boslt$mean
+pred.boslt <- nextYearPred(boxrltnsats, 1987)$mean
 
 # for middle tier
-models.bosmt <- vector("list", numy.bos)
-maes.bosmt <- vector("numeric", numy.bos)
-for (i in 2:numy.bos){
-  boxrmtnsafc <- auto.arima(window(boxrmtnsats, 1987, c(1986 + i, 12)), D = 1)
-  models.bosmt[[i]] <- boxrmtnsafc$arma
-  if (i == numy.bos){
-    pred <- forecast(boxrmtnsafc, extra.bos)
-    if (extra.bos == 12){
-      maes.bosmt[i] <- mean(abs(pred$mean - window(boxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-    } else {
-      maes.bosmt[i] <- mean(abs(pred$mean - window(boxrmtnsats, (1986 + i + 1), c(1986 + i + 2, extra.bos - 12))))
-    }
-  } else {
-    pred <- forecast(boxrmtnsafc, 12)
-    maes.bosmt[i] <- mean(abs(pred$mean - window(boxrmtnsats, (1986 + i + 1), c(1986 + i + 1, 12))))
-  }
-}
-para.bosmt <- models.bosmt[[which.min(maes.bosmt[2:numy.bos]) + 1]]
-boxrmtnsafc <- arima(boxrmtnsats, order = c(para.bosmt[1], para.bosmt[6], para.bosmt[2]), seasonal = list(order = c(para.bosmt[3], para.bosmt[7], para.bosmt[4]), period = para.bosmt[5]))
-prediction.bosmt <- forecast(boxrmtnsafc, (24 - extra.bos))
-pred.bosmt <- prediction.bosmt$mean
+pred.bosmt <- nextYearPred(boxrmtnsats, 1987)$mean
 
 # combine the original data and the prediction into one data frame 
 boxrnsa <- cbind(boxrhtnsats, boxrmtnsats, boxrltnsats, pred.bosht, pred.bosmt, pred.boslt)
