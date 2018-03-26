@@ -15,6 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # the warnings caused by the high difference in ARIMA don't affect the resulting models.
 knitr::opts_chunk$set(warning = FALSE)
 
+# set the workign directory to the data set
+setwd("../Data Set")
+
 # load necessary library
 library(forecast) # for prediction
 library(dygraphs) # for visulization
