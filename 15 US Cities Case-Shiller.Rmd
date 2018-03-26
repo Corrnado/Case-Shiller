@@ -78,4 +78,20 @@ nextYearPred <- function(tsobj, syear){
   return(prediction)
 }
 
+# store each prediction
+prediction.at <- nextYearPred(atxrnsats, 1991)
+prediction.bo <- nextYearPred(boxrnsats, 1987)
+prediction.ch <- nextYearPred(chxrnsats, 1987)
+prediction.da <- nextYearPred(daxrnsats, 2000)
+prediction.dn <- nextYearPred(dnxrnsats, 1987)
+prediction.lv <- nextYearPred(lvxrnsats, 1987)
+prediction.lx <- nextYearPred(lxxrnsats, 1987)
+prediction.mi <- nextYearPred(mixrnsats, 1987)
+prediction.mn <- nextYearPred(mnxrnsats, 1989)
+prediction.ny <- nextYearPred(nyxrnsats, 1987)
+prediction.ph <- nextYearPred(phxrnsats, 1989)
+prediction.sd <- nextYearPred(sdxrnsats, 1987)
+prediction.se <- nextYearPred(sexrnsats, 1990)
+prediction.sf <- nextYearPred(sfxrnsats, 1987)
+prediction.wd <- nextYearPred(wdxrnsats, 1987)
 ```
