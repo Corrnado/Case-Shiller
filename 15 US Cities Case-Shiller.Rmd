@@ -32,5 +32,50 @@ sexrnsats <- ts(SEXRNSA[,2], start = c(1990, 1), frequency = 12)
 sfxrnsats <- ts(SFXRNSA[,2], start = c(1987, 1), frequency = 12)
 wdxrnsats <- ts(WDXRNSA[,2], start = c(1987, 1), frequency = 12)
 
+# define a function to find a optimal model for input data
+# tsobj input is time series object and syear is the start year of the data
+nextYearPred <- function(tsobj, syear){
+  
+  # to obtain the number of trainning groups and the number of months in the last test group
+  numy = floor(length(tsobj) / 12) - 1
+  extra = length(tsobj) - numy * 12
+  
+  # to create one numeric vector for storing mae value and one list for ARIMA parameters
+  models <- vector("list", numy)
+  maes <- vector("numeric", numy)
+  
+  # loop through every year
+  for (i in 2:numy){
+  
+    # fit the model on the data
+    tsobjfc <- auto.arima(window(tsobj, syear, c(syear - 1 + i, 12)), D = 1)
+
+    # store model parameters
+    models[[i]] <- tsobjfc$arma
+    
+    # generate the prediction for the test group
+    if (i == numy){
+      pred <- forecast(tsobjfc, extra)
+      if (extra == 12){
+        maes[i] <- mean(abs(pred$mean - window(tsobj, (syear + i), c(syear + i, 12))))
+      } else {
+        maes[i] <- mean(abs(pred$mean - window(tsobj, (syear + i), c(syear + i + 1, extra - 12))))
+      }
+    } else {
+      pred <- forecast(tsobjfc, 12)
+      maes[i] <- mean(abs(pred$mean - window(tsobj, (syear + i), c(syear + i, 12))))
+    }
+  }
+  
+  # using mae criterion for the best fitting model
+  para <- models[[which.min(maes[2:numy]) + 1]]
+  
+  # fit the optimal model to the whole data set
+  # and predict for the next whole year
+  tsobjfc.a <- arima(tsobj, order = c(para[1], para[6], para[2]), seasonal = list(order = c(para[3], para[7], para[4]), period = para[5]), method = "ML")
+  prediction <- forecast(tsobjfc.a, (24 - extra))
+  # return the forecast object
+  return(prediction)
+}
 
 ```
