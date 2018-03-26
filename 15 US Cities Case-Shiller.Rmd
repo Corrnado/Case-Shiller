@@ -128,4 +128,9 @@ res.sd <- ts(res.sd, start = c(2017,12), frequency = 12)
 res.se <- ts(res.se, start = c(2017,12), frequency = 12)
 res.sf <- ts(res.sf, start = c(2017,12), frequency = 12)
 res.wd <- ts(res.wd, start = c(2017,12), frequency = 12)
+
+# Due to the fact that growth of every month isn't optimal to be presented in one figure
+# Year over year (YOY) was introduced and used
+# create a vector for storing YOY rate
+yoy <- vector("numeric", 15)
 ```
