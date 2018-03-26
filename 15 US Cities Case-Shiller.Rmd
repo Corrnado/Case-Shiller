@@ -133,4 +133,31 @@ res.wd <- ts(res.wd, start = c(2017,12), frequency = 12)
 # Year over year (YOY) was introduced and used
 # create a vector for storing YOY rate
 yoy <- vector("numeric", 15)
+
+# to compute the difference betwen the index at two different time
+# a compareInd function was created. Input is a TS object, 
+# the prior time, as a year and month integer vector, such as c(2018, 1) 
+# and the time gap between in month
+compareInd <- function(tsobj, time1, timegap){
+  tmp <- window(tsobj, time1)
+  res <- (tmp[timegap + 1] - tmp[1])/ tmp[1]
+  return(res)
+}
+
+# run the compareInd function to get the yoy
+yoy[1] <- compareInd(res.at, c(2017,12), 12)
+yoy[2] <- compareInd(res.bo, c(2017,12), 12)
+yoy[3] <- compareInd(res.ch, c(2017,12), 12)
+yoy[4] <- compareInd(res.da, c(2017,12), 12)
+yoy[5] <- compareInd(res.dn, c(2017,12), 12)
+yoy[6] <- compareInd(res.lv, c(2017,12), 12)
+yoy[7] <- compareInd(res.lx, c(2017,12), 12)
+yoy[8] <- compareInd(res.mi, c(2017,12), 12)
+yoy[9] <- compareInd(res.mn, c(2017,12), 12)
+yoy[10] <- compareInd(res.ny, c(2017,12), 12)
+yoy[11] <- compareInd(res.ph, c(2017,12), 12)
+yoy[12] <- compareInd(res.sd, c(2017,12), 12)
+yoy[13] <- compareInd(res.se, c(2017,12), 12)
+yoy[14] <- compareInd(res.sf, c(2017,12), 12)
+yoy[15] <- compareInd(res.wd, c(2017,12), 12)
 ```
