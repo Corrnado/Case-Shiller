@@ -14,9 +14,6 @@ output:
 # set the workign directory to the data set
 setwd("../Data Set")
 
-# set the workign directory to the data set
-setwd("../Data Set")
-
 # load necessary library
 library(forecast) # for prediction
 library(dygraphs) # for visulization
