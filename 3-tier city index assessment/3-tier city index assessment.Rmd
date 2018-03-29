@@ -82,7 +82,7 @@ nextYearPred <- function(tsobj){
   # fit the optimal model to the whole data set
   # and predict for the next whole year
   tsobjfc.a <- arima(tsobj, order = c(para[1], para[6], para[2]), seasonal = list(order = c(para[3], para[7], para[4]), period = para[5]), method = "ML")
-  prediction <- forecast(tsobjfc.a, (24 - extra))
+  prediction <- forecast(tsobjfc.a, 12)
   # return the forecast object
   return(prediction)
 }
