@@ -25,6 +25,22 @@ for (i in 1:length(temp)) {
   assign(strtrim(temp[i], (nchar(temp[i]) - 4)), read.csv(temp[i]))
 }
 
+# create a function to trim to the time series object that is a multiplier of 12 monthes
+yearTrim <- function(tsobj){
+  # to obtain the number of years and the number of left-over months
+  numy <- floor(length(tsobj) / 12)
+  extra <- length(tsobj) - numy * 12
+  
+  # to get the start year and month of the object
+  start <- start(tsobj)
+  
+  # to trim the time series object
+  result <- window(tsobj, start = c(start[1], start[2] + extra))
+  
+  #return the trimmed time series object
+  return(result)
+}
+
 # convert Boston Home Index data (3 tiers) into time series object
 boxrhtnsats <- ts(BOXRHTNSA[,2], start = c(1987, 1), frequency = 12)
 boxrltnsats <- ts(BOXRLTNSA[,2], start = c(1987, 1), frequency = 12)
