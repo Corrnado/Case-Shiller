@@ -14,12 +14,12 @@ setwd("../Data Set")
 library(forecast) # for prediction
 
 # load all csv file into resultframe
-temp <- list.files(pattern="*.csv")
+temp = list.files(path = "../Data Set", pattern="*.csv")
 for (i in 1:length(temp)) {
-  assign(strtrim(temp[i], (nchar(temp[i]) - 4)), read.csv(temp[i]))
+  assign(strtrim(temp[i], (nchar(temp[i]) - 4)), read.csv(paste("../Data Set/", temp[i], sep = "")))
 }
 
-# convert all 15 metro areas' Home Index result into time series object
+# convert all 15 metro areas' Home Index results into time series objects
 atxrnsats <- ts(ATXRNSA[,2], start = c(1991, 1), frequency = 12)
 boxrnsats <- ts(BOXRNSA[,2], start = c(1987, 1), frequency = 12)
 chxrnsats <- ts(CHXRNSA[,2], start = c(1987, 1), frequency = 12)
@@ -36,13 +36,51 @@ sexrnsats <- ts(SEXRNSA[,2], start = c(1990, 1), frequency = 12)
 sfxrnsats <- ts(SFXRNSA[,2], start = c(1987, 1), frequency = 12)
 wdxrnsats <- ts(WDXRNSA[,2], start = c(1987, 1), frequency = 12)
 
-# define a function to find a optimal model for input data
-# tsobj input is time series object and syear is the start year of the data
-nextYearPred <- function(tsobj, syear){
+# get the latest entry date on the data set
+etime <- end(atxrnsats)
+
+# create a function to trim to the time series object that is a multiplier of 12 monthes
+yearTrim <- function(tsobj){
+  # to obtain the number of years and the number of left-over months
+  numy <- floor(length(tsobj) / 12)
+  extra <- length(tsobj) - numy * 12
   
-  # to obtain the number of trainning groups and the number of months in the last test group
-  numy = floor(length(tsobj) / 12) - 1
-  extra = length(tsobj) - numy * 12
+  # to get the start year and month of the object
+  start <- start(tsobj)
+  
+  # to trim the time series object
+  result <- window(tsobj, start = c(start[1], start[2] + extra))
+  
+  #return the trimmed time series object
+  return(result)
+}
+
+# trim all 15 metro areas' Home Index results into multipliers of 12 months
+atxrnsats <- yearTrim(atxrnsats)
+boxrnsats <- yearTrim(boxrnsats)
+chxrnsats <- yearTrim(chxrnsats)
+daxrnsats <- yearTrim(daxrnsats)
+dnxrnsats <- yearTrim(dnxrnsats)
+lvxrnsats <- yearTrim(lvxrnsats)
+lxxrnsats <- yearTrim(lxxrnsats)
+mixrnsats <- yearTrim(mixrnsats)
+mnxrnsats <- yearTrim(mnxrnsats)
+nyxrnsats <- yearTrim(nyxrnsats)
+phxrnsats <- yearTrim(phxrnsats)
+sdxrnsats <- yearTrim(sdxrnsats)
+sexrnsats <- yearTrim(sexrnsats)
+sfxrnsats <- yearTrim(sfxrnsats)
+wdxrnsats <- yearTrim(wdxrnsats)
+
+# define a function to find a optimal model for input data
+# tsobj input is the time series object
+nextYearPred <- function(tsobj){
+  
+  # to get the start time
+  stime <- start(tsobj)
+  
+  # to obtain the number of trainning groups
+  numy = length(tsobj) / 12 - 1
   
   # to create one numeric vector for storing mae value and one list for ARIMA parameters
   models <- vector("list", numy)
@@ -52,23 +90,16 @@ nextYearPred <- function(tsobj, syear){
   for (i in 2:numy){
   
     # fit the model on the data
-    tsobjfc <- auto.arima(window(tsobj, syear, c(syear - 1 + i, 12)), D = 1)
+    tsobjfc <- auto.arima(window(tsobj, stime, c(stime[1], stime[2] + i * 12 - 1)), D = 1)
 
     # store model parameters
     models[[i]] <- tsobjfc$arma
     
     # generate the prediction for the test group
-    if (i == numy){
-      pred <- forecast(tsobjfc, extra)
-      if (extra == 12){
-        maes[i] <- mean(abs(pred$mean - window(tsobj, (syear + i), c(syear + i, 12))))
-      } else {
-        maes[i] <- mean(abs(pred$mean - window(tsobj, (syear + i), c(syear + i + 1, extra - 12))))
-      }
-    } else {
-      pred <- forecast(tsobjfc, 12)
-      maes[i] <- mean(abs(pred$mean - window(tsobj, (syear + i), c(syear + i, 12))))
-    }
+    pred <- forecast(tsobjfc, 12)
+    
+    # store the mean absolute errors (MAEs)
+    maes[i] <- mean(abs(pred$mean - window(tsobj, c(stime[1] + i, stime[2]), c(stime[1] + i, stime[2] + 11))))
   }
   
   # using mae criterion for the best fitting model
@@ -77,27 +108,27 @@ nextYearPred <- function(tsobj, syear){
   # fit the optimal model to the whole data set
   # and predict for the next whole year
   tsobjfc.a <- arima(tsobj, order = c(para[1], para[6], para[2]), seasonal = list(order = c(para[3], para[7], para[4]), period = para[5]), method = "ML")
-  prediction <- forecast(tsobjfc.a, (24 - extra))
+  prediction <- forecast(tsobjfc.a, 12)
   # return the forecast object
   return(prediction)
 }
 
 # store each prediction
-prediction.at <- nextYearPred(atxrnsats, 1991)
-prediction.bo <- nextYearPred(boxrnsats, 1987)
-prediction.ch <- nextYearPred(chxrnsats, 1987)
-prediction.da <- nextYearPred(daxrnsats, 2000)
-prediction.dn <- nextYearPred(dnxrnsats, 1987)
-prediction.lv <- nextYearPred(lvxrnsats, 1987)
-prediction.lx <- nextYearPred(lxxrnsats, 1987)
-prediction.mi <- nextYearPred(mixrnsats, 1987)
-prediction.mn <- nextYearPred(mnxrnsats, 1989)
-prediction.ny <- nextYearPred(nyxrnsats, 1987)
-prediction.ph <- nextYearPred(phxrnsats, 1989)
-prediction.sd <- nextYearPred(sdxrnsats, 1987)
-prediction.se <- nextYearPred(sexrnsats, 1990)
-prediction.sf <- nextYearPred(sfxrnsats, 1987)
-prediction.wd <- nextYearPred(wdxrnsats, 1987)
+prediction.at <- nextYearPred(atxrnsats)
+prediction.bo <- nextYearPred(boxrnsats)
+prediction.ch <- nextYearPred(chxrnsats)
+prediction.da <- nextYearPred(daxrnsats)
+prediction.dn <- nextYearPred(dnxrnsats)
+prediction.lv <- nextYearPred(lvxrnsats)
+prediction.lx <- nextYearPred(lxxrnsats)
+prediction.mi <- nextYearPred(mixrnsats)
+prediction.mn <- nextYearPred(mnxrnsats)
+prediction.ny <- nextYearPred(nyxrnsats)
+prediction.ph <- nextYearPred(phxrnsats)
+prediction.sd <- nextYearPred(sdxrnsats)
+prediction.se <- nextYearPred(sexrnsats)
+prediction.sf <- nextYearPred(sfxrnsats)
+prediction.wd <- nextYearPred(wdxrnsats)
 
 #combine the original data set and the prediction
 res.at <- rbind(as.matrix(atxrnsats[length(atxrnsats)]), as.matrix(prediction.at$mean))
@@ -117,21 +148,21 @@ res.sf <- rbind(as.matrix(sfxrnsats[length(sfxrnsats)]), as.matrix(prediction.sf
 res.wd <- rbind(as.matrix(wdxrnsats[length(wdxrnsats)]), as.matrix(prediction.wd$mean))
 
 # extract the last month of the original data set and the whole prediction set
-res.at <- ts(res.at, start = c(2017,12), frequency = 12)
-res.bo <- ts(res.bo, start = c(2017,12), frequency = 12)
-res.ch <- ts(res.ch, start = c(2017,12), frequency = 12)
-res.da <- ts(res.da, start = c(2017,12), frequency = 12)
-res.dn <- ts(res.dn, start = c(2017,12), frequency = 12)
-res.lv <- ts(res.lv, start = c(2017,12), frequency = 12)
-res.lx <- ts(res.lx, start = c(2017,12), frequency = 12)
-res.mi <- ts(res.mi, start = c(2017,12), frequency = 12)
-res.mn <- ts(res.mn, start = c(2017,12), frequency = 12)
-res.ny <- ts(res.ny, start = c(2017,12), frequency = 12)
-res.ph <- ts(res.ph, start = c(2017,12), frequency = 12)
-res.sd <- ts(res.sd, start = c(2017,12), frequency = 12)
-res.se <- ts(res.se, start = c(2017,12), frequency = 12)
-res.sf <- ts(res.sf, start = c(2017,12), frequency = 12)
-res.wd <- ts(res.wd, start = c(2017,12), frequency = 12)
+res.at <- ts(res.at, start = etime, frequency = 12)
+res.bo <- ts(res.bo, start = etime, frequency = 12)
+res.ch <- ts(res.ch, start = etime, frequency = 12)
+res.da <- ts(res.da, start = etime, frequency = 12)
+res.dn <- ts(res.dn, start = etime, frequency = 12)
+res.lv <- ts(res.lv, start = etime, frequency = 12)
+res.lx <- ts(res.lx, start = etime, frequency = 12)
+res.mi <- ts(res.mi, start = etime, frequency = 12)
+res.mn <- ts(res.mn, start = etime, frequency = 12)
+res.ny <- ts(res.ny, start = etime, frequency = 12)
+res.ph <- ts(res.ph, start = etime, frequency = 12)
+res.sd <- ts(res.sd, start = etime, frequency = 12)
+res.se <- ts(res.se, start = etime, frequency = 12)
+res.sf <- ts(res.sf, start = etime, frequency = 12)
+res.wd <- ts(res.wd, start = etime, frequency = 12)
 
 # Due to the fact that growth of every month isn't optimal to be presented in one figure
 # Year over year (YOY) was introduced and used
@@ -149,21 +180,21 @@ compareInd <- function(tsobj, time1, timegap){
 }
 
 # run the compareInd function to get the yoy
-yoy[1] <- compareInd(res.at, c(2017,12), 12)
-yoy[2] <- compareInd(res.bo, c(2017,12), 12)
-yoy[3] <- compareInd(res.ch, c(2017,12), 12)
-yoy[4] <- compareInd(res.da, c(2017,12), 12)
-yoy[5] <- compareInd(res.dn, c(2017,12), 12)
-yoy[6] <- compareInd(res.lv, c(2017,12), 12)
-yoy[7] <- compareInd(res.lx, c(2017,12), 12)
-yoy[8] <- compareInd(res.mi, c(2017,12), 12)
-yoy[9] <- compareInd(res.mn, c(2017,12), 12)
-yoy[10] <- compareInd(res.ny, c(2017,12), 12)
-yoy[11] <- compareInd(res.ph, c(2017,12), 12)
-yoy[12] <- compareInd(res.sd, c(2017,12), 12)
-yoy[13] <- compareInd(res.se, c(2017,12), 12)
-yoy[14] <- compareInd(res.sf, c(2017,12), 12)
-yoy[15] <- compareInd(res.wd, c(2017,12), 12)
+yoy[1] <- compareInd(res.at, etime, 12)
+yoy[2] <- compareInd(res.bo, etime, 12)
+yoy[3] <- compareInd(res.ch, etime, 12)
+yoy[4] <- compareInd(res.da, etime, 12)
+yoy[5] <- compareInd(res.dn, etime, 12)
+yoy[6] <- compareInd(res.lv, etime, 12)
+yoy[7] <- compareInd(res.lx, etime, 12)
+yoy[8] <- compareInd(res.mi, etime, 12)
+yoy[9] <- compareInd(res.mn, etime, 12)
+yoy[10] <- compareInd(res.ny, etime, 12)
+yoy[11] <- compareInd(res.ph, etime, 12)
+yoy[12] <- compareInd(res.sd, etime, 12)
+yoy[13] <- compareInd(res.se, etime, 12)
+yoy[14] <- compareInd(res.sf, etime, 12)
+yoy[15] <- compareInd(res.wd, etime, 12)
 
 # store the city names in a character vector
 metro <- c("Atlanta", "Boston", "Chicago", "Dallas", "Denver", "Las Vegas", "Los Angeles", "Miami", "Minneapolis", "New York", "Phoenix", "San Diego", "Seattle", "San Francisco", "Washington")
