@@ -14,6 +14,9 @@ output:
 # set the workign directory to the data set
 setwd("../Data Set")
 
+# set the workign directory to the data set
+setwd("../Data Set")
+
 # load necessary library
 library(forecast) # for prediction
 library(dygraphs) # for visulization
@@ -23,6 +26,7 @@ temp = list.files(path = "../Data Set", pattern="*.csv")
 for (i in 1:length(temp)) {
   assign(strtrim(temp[i], (nchar(temp[i]) - 4)), read.csv(paste("../Data Set/", temp[i], sep = "")))
 }
+
 
 # create a function to trim to the time series object that is a multiplier of 12 months
 yearTrim <- function(tsobj){
@@ -82,6 +86,7 @@ nextYearPred <- function(tsobj){
   # and predict for the next whole year
   tsobjfc.a <- arima(tsobj, order = c(para[1], para[6], para[2]), seasonal = list(order = c(para[3], para[7], para[4]), period = para[5]), method = "ML")
   prediction <- forecast(tsobjfc.a, 12)
+  
   # return the forecast object
   return(prediction)
 }

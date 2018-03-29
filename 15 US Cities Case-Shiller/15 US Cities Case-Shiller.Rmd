@@ -1,9 +1,14 @@
 ---
 title: "15 US Metro Cities' Case-Shiller Index"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r, message=FALSE}
+
+# set the workign directory to the data set
+setwd("../Data Set")
 
 # load necessary library
 library(forecast) # for prediction
