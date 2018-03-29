@@ -11,9 +11,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r, message = FALSE}
 # the warnings caused by the high difference in ARIMA don't affect the resulting models.
-knitr::opts_chunk$set(warning = FALSE)
 
 # load necessary library
 library(forecast) # for prediction
@@ -25,7 +24,7 @@ for (i in 1:length(temp)) {
   assign(strtrim(temp[i], (nchar(temp[i]) - 4)), read.csv(temp[i]))
 }
 
-# create a function to trim to the time series object that is a multiplier of 12 monthes
+# create a function to trim to the time series object that is a multiplier of 12 months
 yearTrim <- function(tsobj){
   # to obtain the number of years and the number of left-over months
   numy <- floor(length(tsobj) / 12)
@@ -47,7 +46,7 @@ yearTrim <- function(tsobj){
 # the training group keeps rolling up each iteration and test group is always the next 12 months
 
 # define a function to find a optimal model for input data
-# tsobj input is time series object
+# tsobj input is the time series object
 nextYearPred <- function(tsobj){
   
   # to get the start time
@@ -92,7 +91,7 @@ boxrhtnsats <- ts(BOXRHTNSA[,2], start = c(1987, 1), frequency = 12)
 boxrltnsats <- ts(BOXRLTNSA[,2], start = c(1987, 1), frequency = 12)
 boxrmtnsats <- ts(BOXRMTNSA[,2], start = c(1987, 1), frequency = 12)
 
-# trim the time series objects to be a multiplier of 12 monthes
+# trim the time series objects to be a multiplier of 12 months
 boxrhtnsats <- yearTrim(boxrhtnsats)
 boxrltnsats <- yearTrim(boxrltnsats)
 boxrmtnsats <- yearTrim(boxrmtnsats)
@@ -145,17 +144,16 @@ compareInd(boxrltnsats, c(2016,12), 12)
 (pred.bosmt[12] - boxrmtnsats[372])/ boxrmtnsats[372]
 (pred.boslt[12] - boxrltnsats[372])/ boxrltnsats[372]
 ```
-In each metro area, residential homes were divided into 3 tiers, high tier, middle tier and low tier. From the plot for Boston, MA, it can be observed that the home price indexes for all 3 tiers have exceeded the highest position before 2008 financial crisis by the end of 2017. The high, middle and low tiers of residential homes' year over year growth rates by December 2017 are 4.25%, 6.73%, and 7.8%. Using seasonal ARIMA model, we can obtain the prediction for 2018. By the end of 2018, the predicted year over year growth rates for 3 tiers are 3% for the high tier, 5.61% for the middle tier and 7.21% for the low tier. It can be clearly observed that the low tier is the backbone of the Boston market growth in 2018. Both the low tier and the middle tier is predicted to maintain roughly the same growth rate as that in 2017, but the growth of the high tier is predicted to slow down in 2018.
+In each metro area, residential homes were divided into 3 tiers, high tier, middle tier and low tier. From the plot for Boston, MA, it can be observed that the home price indexes for all 3 tiers have exceeded the highest position before 2008 financial crisis by the end of 2017. The high, middle and low tiers of residential homes' year over year growth rates by December 2017 are 4.25%, 6.73%, and 7.8%. Using seasonal ARIMA model, we can obtain the prediction for 2018. By the end of 2018, the predicted year over year growth rates for 3 tiers are 3% for the high tier, 5.61% for the middle tier and 7.22% for the low tier. It can be clearly observed that the low tier is the backbone of the Boston market growth in 2018. Both the low tier and the middle tier is predicted to maintain roughly the same growth rate as that in 2017, but the growth of the high tier is predicted to slow down in 2018.
 
-```{r}
-knitr::opts_chunk$set(warning = FALSE)
+```{r, message = FALSE}
 
 # convert Chicago Home Index data (3 tiers) into time series object
 chxrhtnsats <- ts(CHXRHTNSA[,2], start = c(1992, 1), frequency = 12)
 chxrltnsats <- ts(CHXRLTNSA[,2], start = c(1992, 1), frequency = 12)
 chxrmtnsats <- ts(CHXRMTNSA[,2], start = c(1992, 1), frequency = 12)
 
-# trim the time series objects to be a multiplier of 12 monthes
+# trim the time series objects to be a multiplier of 12 months
 chxrhtnsats <- yearTrim(chxrhtnsats)
 chxrltnsats <- yearTrim(chxrltnsats)
 chxrmtnsats <- yearTrim(chxrmtnsats)
@@ -198,13 +196,14 @@ compareInd(chxrltnsats, c(2016,12), 12)
 ```
 It can be observed that the home price indexes for all 3 tiers in Chicago, IL have experienced significant growth, though it hasn't exceeded the highest position before 2008 financial crisis by the end of 2017. The high, middle and low tiers of residential homes' year over year growth rates by December 2017 are 0.38%, 4.92%, and 9.63%. It's clear that the low tier residential home is the main growth factor of Chicago market in 2017. Using the seasonal ARIMA model, the predicted year over year growth rates for 3 tiers by the end of 2018 are 0.38% for the high tier, 4.64% for the middle tier and 6.38% for the low tier. It can be seen that the growth rate for all 3 tiers homes will fall in 2018 but still maintain the growing tendency.
 
-```{r}
+```{r, message = FALSE}
+
 # convert Los Angeles Home Index data (3 tiers) into time series object
 laxrhtnsats <- ts(LXXRHTNSA[,2], start = c(1987, 1), frequency = 12)
 laxrltnsats <- ts(LXXRLTNSA[,2], start = c(1987, 1), frequency = 12)
 laxrmtnsats <- ts(LXXRMTNSA[,2], start = c(1987, 1), frequency = 12)
 
-# trim the time series objects to be a multiplier of 12 monthes
+# trim the time series objects to be a multiplier of 12 months
 laxrhtnsats <- yearTrim(laxrhtnsats)
 laxrltnsats <- yearTrim(laxrltnsats)
 laxrmtnsats <- yearTrim(laxrmtnsats)
@@ -247,15 +246,14 @@ compareInd(laxrltnsats, c(2016,12), 12)
 ```
 It can be observed that the home price indexes for all 3 tiers in Los Angeles, CA have experienced significant growth and has been around the highest position before 2008 financial crisis by the end of 2017. The high, middle and low tiers of residential homes' year over year growth rates by December 2017 are 6.53%, 7.35%, and 10.7%, which is one the highest across the country. Using the seasonal ARIMA model, the predicted year over year growth rates for 3 tiers by the end of 2018 are 7.61% for the high tier, 7.8% for the middle tier and 16.16% for the low tier, all of which are expected to exceed to the highest mark achieved before 2008 financial crisis. It can be seen that the growth rate for all 3 tiers homes in 2018 will exceed that in 2017 and the future of the Los Angeles home market seems very bright.
 
-```{r}
-knitr::opts_chunk$set(warning = FALSE)
+```{r, message = FALSE}
 
 # convert New York Home Index data (3 tiers) into time series object
 nyxrhtnsats <- ts(NYXRHTNSA[,2], start = c(1987, 1), frequency = 12)
 nyxrltnsats <- ts(NYXRLTNSA[,2], start = c(1987, 1), frequency = 12)
 nyxrmtnsats <- ts(NYXRMTNSA[,2], start = c(1987, 1), frequency = 12)
 
-# trim the time series objects to be a multiplier of 12 monthes
+# trim the time series objects to be a multiplier of 12 months
 nyxrhtnsats <- yearTrim(nyxrhtnsats)
 nyxrltnsats <- yearTrim(nyxrltnsats)
 nyxrmtnsats <- yearTrim(nyxrmtnsats)
@@ -298,15 +296,14 @@ compareInd(nyxrltnsats, c(2016,12), 12)
 ```
 It can be observed that the home price indexes for all 3 tiers in New York, NY have experienced steady growth, but hasn't been back to the high mark before 2008 financial crisis by the end of 2017. The high, middle and low tiers of residential homes' year over year growth rates by December 2017 are 4.25%, 7.28%, and 5.9%. Using the seasonal ARIMA model, the predicted year over year growth rates for 3 tiers by the end of 2018 are 3.54% for the high tier, 6.73% for the middle tier and 6.07% for the low tier such that the middle tier is the main growth factor for New York market. It can be seen that the growth rate for both the high and middle tiers in 2018 will be inferior to that in 2017, but the low tier market is gonna see a slightly steeper growth in 2018.
 
-```{r}
-knitr::opts_chunk$set(warning = FALSE)
+```{r, message = FALSE}
 
 # convert San Francisco Home Index data (3 tiers) into time series object
 sfxrhtnsats <- ts(SFXRHTNSA[,2], start = c(1987, 1), frequency = 12)
 sfxrltnsats <- ts(SFXRLTNSA[,2], start = c(1987, 1), frequency = 12)
 sfxrmtnsats <- ts(SFXRMTNSA[,2], start = c(1987, 1), frequency = 12)
 
-# trim the time series objects to be a multiplier of 12 monthes
+# trim the time series objects to be a multiplier of 12 months
 sfxrhtnsats <- yearTrim(sfxrhtnsats)
 sfxrltnsats <- yearTrim(sfxrltnsats)
 sfxrmtnsats <- yearTrim(sfxrmtnsats)
