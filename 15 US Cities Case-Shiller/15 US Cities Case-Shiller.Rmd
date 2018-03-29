@@ -5,8 +5,7 @@ output:
     df_print: paged
 ---
 
-```{r}
-knitr::opts_chunk$set(warning = FALSE)
+```{r, message=FALSE}
 
 # set the workign directory to the data set
 setwd("../Data Set")
