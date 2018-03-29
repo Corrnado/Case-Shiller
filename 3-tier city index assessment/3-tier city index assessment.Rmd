@@ -51,7 +51,7 @@ yearTrim <- function(tsobj){
 nextYearPred <- function(tsobj){
   
   # to get the start time
-  stime <- time(tsobj)
+  stime <- start(tsobj)
   
   # to obtain the number of trainning groups
   numy = length(tsobj) / 12 - 1
