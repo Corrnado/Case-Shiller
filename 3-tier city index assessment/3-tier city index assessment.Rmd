@@ -24,6 +24,8 @@ for (i in 1:length(temp)) {
   assign(strtrim(temp[i], (nchar(temp[i]) - 4)), read.csv(paste("../Data Set/", temp[i], sep = "")))
 }
 
+# get the latest entry date on the data set
+etime <- end(boxrhtnsats)
 
 # create a function to trim to the time series object that is a multiplier of 12 months
 yearTrim <- function(tsobj){
@@ -137,9 +139,9 @@ compareInd <- function(tsobj, time1, timegap){
 }
 
 # compare the index for all three tiers between the most current and one years ago
-compareInd(boxrhtnsats, c(2016,12), 12)
-compareInd(boxrmtnsats, c(2016,12), 12)
-compareInd(boxrltnsats, c(2016,12), 12)
+compareInd(boxrhtnsats, c(etime[1] - 1, etime[2]), 12)
+compareInd(boxrmtnsats, c(etime[1] - 1, etime[2]), 12)
+compareInd(boxrltnsats, c(etime[1] - 1, etime[2]), 12)
 
 # compare the predicted index in 2018.12 and the index in 2017.12
 (pred.bosht[12] - boxrhtnsats[372])/ boxrhtnsats[372]
@@ -187,9 +189,9 @@ dygraph(chxrnsa, main = "Home Price Index for Chicago, Illinois") %>%
   dyLegend(width = 600)
 
 # compare the index for all three tiers between the most current and one years ago
-compareInd(chxrhtnsats, c(2016,12), 12)
-compareInd(chxrmtnsats, c(2016,12), 12)
-compareInd(chxrltnsats, c(2016,12), 12)
+compareInd(chxrhtnsats, c(etime[1] - 1, etime[2]), 12)
+compareInd(chxrmtnsats, c(etime[1] - 1, etime[2]), 12)
+compareInd(chxrltnsats, c(etime[1] - 1, etime[2]), 12)
 
 # compare the predicted index in 2018.12 and the index in 2017.12
 (pred.chiht[12] - chxrhtnsats[312])/ chxrhtnsats[312]
@@ -237,9 +239,9 @@ dygraph(laxrnsa, main = "Home Price Index for Los Angeles, California") %>%
   dyLegend(width = 600)
 
 # compare the index for all three tiers between the most current and one years ago
-compareInd(laxrhtnsats, c(2016,12), 12)
-compareInd(laxrmtnsats, c(2016,12), 12)
-compareInd(laxrltnsats, c(2016,12), 12)
+compareInd(laxrhtnsats, c(etime[1] - 1, etime[2]), 12)
+compareInd(laxrmtnsats, c(etime[1] - 1, etime[2]), 12)
+compareInd(laxrltnsats, c(etime[1] - 1, etime[2]), 12)
 
 # compare the predicted index in 2018.12 and the index in 2017.12
 (pred.laht[12] - laxrhtnsats[372])/ laxrhtnsats[372]
@@ -287,9 +289,9 @@ dygraph(nyxrnsa, main = "Home Price Index for New York, New York") %>%
   dyLegend(width = 600)
 
 # compare the index for all three tiers between the most current and one years ago
-compareInd(nyxrhtnsats, c(2016,12), 12)
-compareInd(nyxrmtnsats, c(2016,12), 12)
-compareInd(nyxrltnsats, c(2016,12), 12)
+compareInd(nyxrhtnsats, c(etime[1] - 1, etime[2]), 12)
+compareInd(nyxrmtnsats, c(etime[1] - 1, etime[2]), 12)
+compareInd(nyxrltnsats, c(etime[1] - 1, etime[2]), 12)
 
 # compare the predicted index in 2018.12 and the index in 2017.12
 (pred.nyht[12] - nyxrhtnsats[372])/ nyxrhtnsats[372]
@@ -337,9 +339,9 @@ dygraph(sfxrnsa, main = "Home Price Index for San Francisco, California") %>%
   dyLegend(width = 600)
 
 # compare the index for all three tiers between the most current and one years ago
-compareInd(sfxrhtnsats, c(2016,12), 12)
-compareInd(sfxrmtnsats, c(2016,12), 12)
-compareInd(sfxrltnsats, c(2016,12), 12)
+compareInd(sfxrhtnsats, c(etime[1] - 1, etime[2]), 12)
+compareInd(sfxrmtnsats, c(etime[1] - 1, etime[2]), 12)
+compareInd(sfxrltnsats, c(etime[1] - 1, etime[2]), 12)
 
 # compare the predicted index in 2018.12 and the index in 2017.12
 (pred.sfht[12] - sfxrhtnsats[372])/ sfxrhtnsats[372]
