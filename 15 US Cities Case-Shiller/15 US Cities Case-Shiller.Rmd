@@ -3,16 +3,15 @@ title: "15 US Metro Cities' Case-Shiller Index"
 output: html_notebook
 ---
 
-```{r}
-knitr::opts_chunk$set(warning = FALSE)
+```{r, message=FALSE}
 
 # load necessary library
 library(forecast) # for prediction
 
 # load all csv file into resultframe
-temp <- list.files(pattern="*.csv")
+temp = list.files(path = "../Data Set", pattern="*.csv")
 for (i in 1:length(temp)) {
-  assign(strtrim(temp[i], (nchar(temp[i]) - 4)), read.csv(temp[i]))
+  assign(strtrim(temp[i], (nchar(temp[i]) - 4)), read.csv(paste("../Data Set/", temp[i], sep = "")))
 }
 
 # convert all 15 metro areas' Home Index results into time series objects
